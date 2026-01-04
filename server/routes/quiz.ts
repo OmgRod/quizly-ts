@@ -3,6 +3,14 @@ import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
+import rateLimit from 'express-rate-limit';
+
+const createQuizLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 quiz creation requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Helper to serialize JSON fields to strings for SQLite
 const serializeQuestion = (q: any, index: number) => ({
@@ -433,7 +441,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create quiz (requires auth)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, createQuizLimiter, async (req, res) => {
   try {
     const { title, genre, description, questions, visibility } = req.body;
     const userId = req.session.userId!;
