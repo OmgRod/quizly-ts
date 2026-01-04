@@ -495,8 +495,19 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
+    // Check if viewer is admin
+    let isAdmin = false;
+    if (viewerId) {
+      const viewer = await prisma.user.findUnique({
+        where: { id: viewerId },
+        select: { isAdmin: true }
+      });
+      isAdmin = viewer?.isAdmin || false;
+    }
+
     const isOwner = viewerId && viewerId === quiz.userId;
-    if (!isOwner && quiz.visibility !== 'PUBLIC') {
+    // Allow access if: owner, admin, or public quiz
+    if (!isOwner && !isAdmin && quiz.visibility !== 'PUBLIC') {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
