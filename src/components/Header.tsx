@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, getLevelFromXP } from '../types';
+import { User } from '../types';
 import { generateAvatarUrl } from '../utils/avatar';
+import { getLevelFromXP } from '../utils/leveling';
 
 interface HeaderProps {
   user: User | null;

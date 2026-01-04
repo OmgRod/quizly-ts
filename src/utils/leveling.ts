@@ -3,7 +3,7 @@
  * Formula: XP required for level L is 1000 * ((1.5^(L-1) - 1) / 0.5)
  */
 
-const getLevelFromXP = (xp: number): number => {
+export const getLevelFromXP = (xp: number): number => {
   if (xp < 1000) return 1;
   // Inverse of the geometric sum formula
   return Math.floor(1 + Math.log(xp / 2000 + 1) / Math.log(1.5));

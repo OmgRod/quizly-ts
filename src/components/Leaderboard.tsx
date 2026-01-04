@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Player, getRankFromAccuracy } from '../types';
+import { Player } from '../types';
+import { getRankFromAccuracy } from '../utils/leveling';
 
 interface LeaderboardProps {
   players: Player[];
