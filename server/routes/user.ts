@@ -3,8 +3,16 @@ import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, isValidImageUrl, isValidUsername } from '../middleware/inputValidation';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+const deleteAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // limit each IP to 5 delete account requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Get global leaderboard
 router.get('/leaderboard/global', async (req, res) => {
@@ -221,7 +229,7 @@ router.put('/profile', requireAuth, async (req, res) => {
 });
 
 // Delete user account
-router.delete('/account', requireAuth, async (req, res) => {
+router.delete('/account', requireAuth, deleteAccountLimiter, async (req, res) => {
   try {
     const userId = req.userId!;
 
