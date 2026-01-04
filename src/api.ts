@@ -1,6 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Use relative URLs in production, or environment variable if provided
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // In production, use relative URLs (same origin)
+  if (import.meta.env.PROD) {
+    return '/api';
+  }
+  // In development, use localhost
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Store CSRF token
 let csrfToken: string | null = null;

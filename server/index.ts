@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import session from 'express-session';
 import cors from 'cors';
 import csrf from 'csurf';
+import path from 'path';
 import authRoutes from './routes/auth';
 import quizRoutes from './routes/quiz';
 import gameRoutes from './routes/game';
@@ -15,16 +16,22 @@ import prisma from './prisma';
 
 const app = express();
 const httpServer = createServer(app);
+
+// Determine CORS origin based on environment
+const corsOrigin = process.env.NODE_ENV === 'production' 
+  ? process.env.CLIENT_URL || 'http://localhost:3000'
+  : process.env.CLIENT_URL || 'http://localhost:5173';
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: corsOrigin,
     credentials: true
   }
 });
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: corsOrigin,
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
@@ -89,6 +96,15 @@ app.use((req, res, next) => {
   csrfProtection(req, res, next);
 });
 
+// Serve static files from dist in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '..', 'dist');
+  app.use(express.static(distPath, {
+    maxAge: '1d',
+    etag: false,
+  }));
+}
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
@@ -100,6 +116,13 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Serve index.html for client-side routing in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  });
+}
 
 // Setup Socket.IO
 setupSocketHandlers(io);
