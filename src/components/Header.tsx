@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useUser } from '../context/UserContext';
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '../types';
 import { generateAvatarUrl } from '../utils/avatar';
@@ -9,73 +10,22 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user }) => {
+  const { logout } = useUser();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showHamburger, setShowHamburger] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
-  const navLinksRef = useRef<HTMLDivElement>(null);
-  
+  // Hamburger is shown for screens below lg (1024px)
+  const [showHamburger, setShowHamburger] = useState(window.innerWidth < 1024);
+
   useEffect(() => {
-    const checkOverflow = () => {
-      if (!navRef.current || !navLinksRef.current) return;
-      
-      // Mobile-first: always show hamburger on screens smaller than 768px
-      if (window.innerWidth < 768) {
-        setShowHamburger(true);
-        return;
-      }
-      
-      const nav = navRef.current;
-      const navLinks = navLinksRef.current;
-      
-      // Get all children widths
-      const navRect = nav.getBoundingClientRect();
-      const availableWidth = navRect.width;
-      
-      // Calculate total width needed
-      let totalWidth = 0;
-      Array.from(nav.children).forEach((child) => {
-        if (child !== navLinksRef.current?.parentElement) {
-          totalWidth += (child as HTMLElement).offsetWidth;
-        }
-      });
-      
-      // Add nav-links width
-      totalWidth += navLinks.offsetWidth;
-      
-      // Add some padding/margin buffer (150px for safety)
-      const needsHamburger = totalWidth > availableWidth - 150;
-      setShowHamburger(needsHamburger);
+    const handleResize = () => {
+      setShowHamburger(window.innerWidth < 1024);
     };
-    
-    // Debounce to prevent twitching
-    let timeoutId: NodeJS.Timeout;
-    const debouncedCheck = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(checkOverflow, 100);
-    };
-    
-    // Check on mount
-    checkOverflow();
-    
-    window.addEventListener('resize', debouncedCheck);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', debouncedCheck);
-    };
-  }, [user]); // Re-check when user changes (affects navbar content)
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   return (
-    <nav ref={navRef} className="fixed top-0 left-0 w-full z-50 glass border-b border-white/5 px-4 sm:px-8 py-4 flex items-center justify-between">
-      <style>{`
-        .nav-links-hidden {
-          display: none;
-        }
-        .hamburger-btn-hidden {
-          display: none;
-        }
-      `}</style>
+    <nav className="fixed top-0 left-0 w-full z-50 glass border-b border-white/5 px-4 sm:px-8 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4 sm:gap-8">
         <Link 
           to="/"
@@ -84,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
           QUIZ<span className="text-blue-400 group-hover:text-indigo-400 transition-colors">LY</span>
         </Link>
         
-        <div ref={navLinksRef} className={`nav-links flex items-center gap-1 ${showHamburger ? 'nav-links-hidden' : ''}`}>
+        <div className={`nav-links flex items-center gap-1 ${showHamburger ? 'hidden' : ''}`}>
           <Link 
             to="/explore"
             className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${location.pathname === '/explore' ? 'text-white bg-white/5' : 'text-slate-500 hover:text-white'}`}
@@ -117,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
               <i className="bi bi-trophy mr-2"></i> Leaderboard
             </Link>
           )}
-          {user?.isAdmin && (
+          {(user?.adminRole === 'ADMIN' || user?.adminRole === 'MODERATOR') && (
             <Link 
               to="/admin"
               className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${location.pathname === '/admin' ? 'text-white bg-purple-600/30 border border-purple-500' : 'text-purple-400 hover:text-white'}`}
@@ -155,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
         
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className={`hamburger-btn text-white p-2 hover:bg-white/10 rounded-xl transition-all active:scale-95 ${showHamburger ? '' : 'hamburger-btn-hidden'}`}
+          className={`hamburger-btn text-white p-2 hover:bg-white/10 rounded-xl transition-all active:scale-95 ${showHamburger ? '' : 'hidden'}`}
           aria-label="Toggle menu"
         >
           <i className={`bi ${mobileMenuOpen ? 'bi-x-lg' : 'bi-list'} text-2xl`}></i>
@@ -164,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && showHamburger && (
-        <div className="sm:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 z-50 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 z-50 shadow-2xl animate-in slide-in-from-top-4 duration-300">
           <div className="flex flex-col max-h-[calc(100vh-100px)] overflow-y-auto">
             {/* User Section */}
             {user && (
@@ -248,7 +198,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
                     <i className="bi bi-speedometer2 text-lg w-5"></i>
                     <span>Dashboard</span>
                   </Link>
-                  {user?.isAdmin && (
+                  {(user?.adminRole === 'ADMIN' || user?.adminRole === 'MODERATOR') && (
                     <Link 
                       to="/admin"
                       onClick={() => setMobileMenuOpen(false)}
@@ -275,9 +225,9 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
           {user && (
             <div className="p-4 border-t border-white/10 bg-slate-800/50">
               <button
-                onClick={() => {
+                onClick={async () => {
                   setMobileMenuOpen(false);
-                  // Add logout logic here if needed
+                  await logout();
                   window.location.href = '/';
                 }}
                 className="flex items-center justify-center gap-2 w-full bg-red-600/10 hover:bg-red-600/20 text-red-400 px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest border border-red-600/20 active:scale-95 transition-all"

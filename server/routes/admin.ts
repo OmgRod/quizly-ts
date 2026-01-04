@@ -159,7 +159,7 @@ router.get('/users', requireAdmin, async (req, res) => {
           totalPoints: true,
           xp: true,
           coins: true,
-          isAdmin: true,
+          adminRole: true,
           isSuspended: true,
           createdAt: true,
           updatedAt: true
@@ -222,7 +222,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 // Edit user (admin only) - limited to specific fields
 router.put('/users/:id', requireAdmin, async (req, res) => {
   try {
-    const { coins, isAdmin } = req.body;
+    const { coins, adminRole } = req.body;
     const targetUser = await prisma.user.findUnique({
       where: { id: req.params.id }
     });
@@ -231,16 +231,16 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Prevent removing own admin status
-    if (isAdmin === false && req.userId === req.params.id) {
-      return res.status(400).json({ error: 'Cannot remove your own admin status' });
+    // Prevent demoting own admin role
+    if (adminRole && req.userId === req.params.id && adminRole !== 'ADMIN') {
+      return res.status(400).json({ error: 'Cannot demote your own admin role' });
     }
 
     const updated = await prisma.user.update({
       where: { id: req.params.id },
       data: {
         coins: coins ?? targetUser.coins,
-        isAdmin: isAdmin ?? targetUser.isAdmin
+        adminRole: adminRole ?? targetUser.adminRole
       },
       select: {
         id: true,
@@ -248,7 +248,7 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
         totalPoints: true,
         xp: true,
         coins: true,
-        isAdmin: true,
+        adminRole: true,
         isSuspended: true,
         createdAt: true,
         updatedAt: true

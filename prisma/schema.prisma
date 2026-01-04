@@ -7,6 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
+
 model User {
   id          String   @id @default(cuid())
   username    String   @unique
@@ -18,13 +21,13 @@ model User {
   profileVisibility Boolean @default(true)
   showQuizStats Boolean @default(true)
   anonymousMode Boolean @default(false)
-  isAdmin     Boolean  @default(false)
+  adminRole   String @default("USER") // Allowed: USER, MODERATOR, ADMIN
   isSuspended Boolean  @default(false)
   acceptedTosVersion String? @default("1.0.0")
   acceptedPrivacyVersion String? @default("1.0.0")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  lastActiveAt DateTime? // Already present in some code, add if not present
+  lastActiveAt DateTime?
   showJoinDate Boolean @default(true)
   showLastOnline Boolean @default(true)
 

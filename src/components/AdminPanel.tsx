@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react';
+
+
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import api from '../api';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import Modal from './ui/Modal';
 import { LIMITS } from './QuizCreator';
 import ReportsTab from './ReportsTab';
+import { AdminRole } from '../types';
+import type { User as UserType } from '../types';
 
 interface Quiz {
   id: string;
@@ -18,18 +23,7 @@ interface Quiz {
   updatedAt: string;
 }
 
-interface User {
-  id: string;
-  username: string;
-  totalPoints: number;
-  xp: number;
-  coins: number;
-  isAdmin: boolean;
-  isSuspended: boolean;
-  createdAt: string;
-  quizCount?: number;
-  sessionCount?: number;
-}
+type User = UserType & { quizCount?: number; sessionCount?: number };
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,6 +38,10 @@ export default function AdminPanel() {
   const [viewingQuizId, setViewingQuizId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Modal state for role change
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [roleModalUser, setRoleModalUser] = useState<User | null>(null);
+  const [selectedRole, setSelectedRole] = useState<AdminRole>('USER');
   
   // Pagination & Search
   const [quizPage, setQuizPage] = useState(1);
@@ -173,24 +171,25 @@ export default function AdminPanel() {
     }
   };
 
-  // Toggle admin
-  const handleToggleAdmin = async (userId: string, currentState: boolean) => {
-    if (user?.id === userId && currentState) {
-      setError('Cannot remove your own admin status');
+  // Change admin role (modal version)
+  const handleChangeRole = async (userId: string, newRole: AdminRole) => {
+    if (user?.id === userId && newRole !== 'ADMIN') {
+      setError('Cannot demote your own admin role');
       return;
     }
-
     try {
-      await api.put(`/admin/users/${userId}`, { isAdmin: !currentState });
+      await api.put(`/admin/users/${userId}`, { adminRole: newRole });
       setUsers(
         users.map(u =>
-          u.id === userId ? { ...u, isAdmin: !currentState } : u
+          u.id === userId ? { ...u, adminRole: newRole } : u
         )
       );
-      setSuccess(currentState ? 'Admin status removed' : 'User promoted to admin');
+      setSuccess(`Role updated to ${newRole}`);
       setTimeout(() => setSuccess(''), 3000);
+      setRoleModalOpen(false);
+      setRoleModalUser(null);
     } catch (err) {
-      setError('Failed to update admin status');
+      setError('Failed to update user role');
       console.error(err);
     }
   };
@@ -216,7 +215,7 @@ export default function AdminPanel() {
   const quizPages = Math.ceil(totalQuizzes / ITEMS_PER_PAGE);
   const userPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
 
-  if (!user?.isAdmin) {
+  if (!user || (user.adminRole !== 'ADMIN' && user.adminRole !== 'MODERATOR')) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="bg-red-50 border-red-200">
@@ -440,7 +439,9 @@ export default function AdminPanel() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-lg">{u.username}</h3>
-                          {u.isAdmin && <Shield size={16} className="text-blue-600" />}
+                          {u.adminRole === 'ADMIN' && <Shield size={16} className="text-blue-600" />}
+                          {u.adminRole === 'MODERATOR' && <Shield size={16} className="text-green-600" />}
+                          <span className="text-xs font-bold text-gray-500 ml-2">{u.adminRole}</span>
                           {u.isSuspended && <Lock size={16} className="text-red-600" />}
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mt-2">
@@ -451,14 +452,74 @@ export default function AdminPanel() {
                         </div>
                       </div>
                       <div className="flex gap-2 flex-wrap justify-end">
-                        <Button
-                          size="sm"
-                          variant={u.isAdmin ? 'secondary' : 'primary'}
-                          onClick={() => handleToggleAdmin(u.id, u.isAdmin)}
-                          disabled={user?.id === u.id}
-                        >
-                          {u.isAdmin ? <ShieldOff size={16} /> : <Shield size={16} />}
-                        </Button>
+                        {/* Role management: Only admins can promote/demote, cannot demote self */}
+                        {user.adminRole === 'ADMIN' && user.id !== u.id && (
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={() => {
+                              setRoleModalUser(u);
+                              setSelectedRole(u.adminRole as AdminRole);
+                              setRoleModalOpen(true);
+                            }}
+                          >
+                            Change Role
+                          </Button>
+                        )}
+                              {/* Role Change Modal */}
+                              <Modal isOpen={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
+                                {roleModalUser && (
+                                  <div className="glass p-10 rounded-[3rem] border-indigo-500/20 w-full max-w-md relative z-10 animate-in zoom-in duration-300 text-center space-y-8">
+                                    <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 text-3xl mx-auto mb-2">
+                                      <i className="bi bi-person-badge"></i>
+                                    </div>
+                                    <div className="mb-2">
+                                      <h3 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight mb-1">Change User Role</h3>
+                                      <div className="bg-white/5 rounded-2xl p-3 border border-white/10 inline-block">
+                                        <span className="text-slate-400 text-xs font-bold uppercase tracking-widest mr-2">User</span>
+                                        <span className="text-white font-black">{roleModalUser.username}</span>
+                                      </div>
+                                      <div className="text-xs text-slate-400 mt-2">Current Role: <span className="font-bold text-indigo-400">{roleModalUser.adminRole}</span></div>
+                                    </div>
+                                    <div className="mb-4">
+                                      <label className="block mb-2 text-xs font-black text-white uppercase tracking-wider">Select new role:</label>
+                                      <div className="flex flex-col gap-3 items-center">
+                                        {['USER', 'MODERATOR', 'ADMIN'].map((role) => (
+                                          <label key={role} className="flex items-center gap-3 cursor-pointer select-none">
+                                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedRole === role ? (role === 'ADMIN' ? 'bg-indigo-500 border-indigo-400' : role === 'MODERATOR' ? 'bg-green-500 border-green-400' : 'bg-slate-500 border-slate-400') : 'border-white/20 bg-white/5'}` }>
+                                              {selectedRole === role && <i className="bi bi-check-lg text-white text-lg"></i>}
+                                            </span>
+                                            <input
+                                              type="radio"
+                                              name="adminRole"
+                                              value={role}
+                                              checked={selectedRole === role}
+                                              onChange={() => setSelectedRole(role as AdminRole)}
+                                              className="hidden"
+                                              disabled={role === 'ADMIN' && user?.id === roleModalUser.id}
+                                            />
+                                            <span className={`font-bold text-white ${role === 'ADMIN' ? 'text-indigo-400' : role === 'MODERATOR' ? 'text-green-400' : 'text-slate-300'}`}>{role.charAt(0) + role.slice(1).toLowerCase()}</span>
+                                            {role === 'ADMIN' && user?.id === roleModalUser.id && <span className="text-xs text-gray-400">(cannot demote self)</span>}
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 mt-6">
+                                      <Button
+                                        size="sm"
+                                        variant="primary"
+                                        onClick={() => handleChangeRole(roleModalUser.id, selectedRole)}
+                                        disabled={user?.id === roleModalUser.id && selectedRole !== 'ADMIN'}
+                                      >
+                                        Confirm
+                                      </Button>
+                                      <Button size="sm" variant="secondary" onClick={() => setRoleModalOpen(false)}>
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </Modal>
                         <Button
                           size="sm"
                           variant={u.isSuspended ? 'primary' : 'secondary'}
@@ -551,7 +612,7 @@ export default function AdminPanel() {
       )}
 
       {/* Reports Tab */}
-      <ReportsTab isActive={activeTab === 'reports'} />
+      {activeTab === 'reports' && <ReportsTab isActive={true} />}
     </div>
   );
 }

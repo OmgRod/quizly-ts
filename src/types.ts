@@ -79,6 +79,8 @@ export interface Quiz {
   playCount: number;
 }
 
+export type AdminRole = 'USER' | 'MODERATOR' | 'ADMIN';
+
 export interface User {
   id: string;
   username: string;
@@ -94,7 +96,7 @@ export interface User {
   showLastOnline?: boolean;
   createdAt?: string | number;
   lastActiveAt?: string | number;
-  isAdmin?: boolean;
+  adminRole?: AdminRole;
   isSuspended?: boolean;
   acceptedTosVersion?: string;
   acceptedPrivacyVersion?: string;

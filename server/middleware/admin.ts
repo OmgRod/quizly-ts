@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       userId?: string;
-      isAdmin?: boolean;
+      adminRole?: string;
     }
   }
 }
@@ -20,7 +20,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { isAdmin: true, isSuspended: true }
+      select: { adminRole: true, isSuspended: true }
     });
 
     if (!user) {
@@ -31,12 +31,12 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
       return res.status(403).json({ error: 'Account suspended' });
     }
 
-    if (!user.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
+    if (user.adminRole !== 'ADMIN' && user.adminRole !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Admin or Moderator access required' });
     }
 
     req.userId = userId;
-    req.isAdmin = true;
+    req.adminRole = user.adminRole;
     next();
   } catch (error) {
     console.error('Admin middleware error:', error);
