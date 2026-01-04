@@ -3,6 +3,15 @@ import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
+import rateLimit from 'express-rate-limit';
+
+// Rate limiter for AI endpoints to prevent abuse / DoS
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP/user to 50 AI requests per window
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Helper to serialize JSON fields to strings for SQLite
 const serializeQuestion = (q: any, index: number) => ({
@@ -226,7 +235,7 @@ const normalizeAiQuiz = (incoming: any, original: any) => {
 };
 
 // AI Quiz Generation endpoint
-router.post('/ai/generate', requireAuth, async (req, res) => {
+router.post('/ai/generate', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { topic, count } = req.body;
     const userId = req.session.userId!;
@@ -248,7 +257,7 @@ router.post('/ai/generate', requireAuth, async (req, res) => {
 });
 
 // AI Quiz Modification endpoint
-router.post('/ai/modify', requireAuth, async (req, res) => {
+router.post('/ai/modify', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { quiz, instruction, questionCount } = req.body;
     const userId = req.session.userId!;
