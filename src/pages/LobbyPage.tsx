@@ -11,7 +11,7 @@ const LobbyPage: React.FC = () => {
   const navigate = useNavigate();
   const { pin } = useParams<{ pin: string }>();
   const { user, loading: userLoading } = useUser();
-  const handleError = useErrorHandler();
+  const { handleError } = useErrorHandler();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -90,6 +90,8 @@ const LobbyPage: React.FC = () => {
       console.error('[LOBBY] ROOM_ERROR received:', data);
       if (data.error === 'ROOM_NOT_FOUND') {
         navigate(`/error?code=410&message=${encodeURIComponent('This game session has ended or does not exist')}`);
+      } else if (data.error === 'ALREADY_JOINED') {
+        navigate(`/error?code=403&message=${encodeURIComponent('This account is already connected to this game. If you are reconnecting, please close other tabs or devices.')}`);
       } else {
         handleError(500, data.message || 'Failed to join lobby');
       }
@@ -107,30 +109,7 @@ const LobbyPage: React.FC = () => {
     });
 
     socket.on('PLAYER_DISCONNECTED', (data: { pin: string; playerId: string; connected: boolean }) => {
-      if (data.pin === pin) {
-        // Mark player as disconnected
-        setPlayers(prevPlayers => 
-          prevPlayers.map(p => 
-            p.id === data.playerId ? { ...p, connected: data.connected } : p
-          )
-        );
-        
-        // Remove disconnected player after 10 seconds if they don't reconnect
-        // (gives time for page refreshes)
-        setTimeout(() => {
-          setPlayers(prevPlayers => {
-            const player = prevPlayers.find(p => p.id === data.playerId);
-            // Only remove if still disconnected, not the host, and not a bot
-            if (player && player.connected === false && !player.isHost && !player.isBot) {
-              const newPlayers = prevPlayers.filter(p => p.id !== data.playerId);
-              // Notify server to update players list
-              socket.emit('REMOVE_PLAYER', { pin, playerId: data.playerId });
-              return newPlayers;
-            }
-            return prevPlayers;
-          });
-        }, 10000); // Increased from 3 to 10 seconds
-      }
+      // No-op: player removal is handled by LOBBY_UPDATE from server
     });
 
     socket.on('LOBBY_UPDATE', (data: { pin: string; players: Player[] }) => {
@@ -224,7 +203,9 @@ const LobbyPage: React.FC = () => {
       
       // Now emit JOIN_ROOM
       console.log('Emitting JOIN_ROOM for player:', playerId);
-      socket.emit('JOIN_ROOM', { pin, playerId });
+      const joinRoomPayload: any = { pin, playerId };
+      if (user?.id) joinRoomPayload.userId = user.id;
+      socket.emit('JOIN_ROOM', joinRoomPayload);
     } catch (error: any) {
       console.error('Failed to load session:', error);
       // Check if it's a 404 response from the server

@@ -42,7 +42,9 @@ const Join: React.FC<JoinProps> = ({ onJoin, onBack }) => {
 
         <div className="space-y-4 sm:space-y-6">
           <input 
-            type="text" 
+            type="tel" 
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="000000" 
             maxLength={6}
             value={pin}

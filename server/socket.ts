@@ -1,3 +1,6 @@
+// Track pending ACKs for critical events per room and player
+const pendingAcks: Map<string, Map<string, { event: string; payload: any }>> = new Map(); // pin -> playerId -> {event, payload}
+
 import { Server, Socket } from 'socket.io';
 import prisma from './prisma.js';
 
@@ -113,7 +116,7 @@ export function setupSocketHandlers(io: Server) {
     console.log('Client connected:', socket.id);
 
     // Join a game room - validate room exists first
-    socket.on('JOIN_ROOM', async (data: { pin: string; playerId?: string }) => {
+    socket.on('JOIN_ROOM', async (data: { pin: string; playerId?: string; userId?: string }) => {
       try {
         const { pin, playerId } = data;
         
@@ -140,17 +143,7 @@ export function setupSocketHandlers(io: Server) {
           if (!roomConnections.has(pin)) {
             roomConnections.set(pin, new Map());
           }
-          
-          // If player already had a connection, it means they're reconnecting
-          const oldSocketId = roomConnections.get(pin)!.get(playerId);
-          if (oldSocketId && oldSocketId !== socket.id) {
-            console.log(`Player ${playerId} reconnecting with new socket ${socket.id}, old socket was ${oldSocketId}`);
-          }
-          
-          // Update to new socket ID
-          roomConnections.get(pin)!.set(playerId, socket.id);
-          
-          // Update player connection status in session
+          // Parse players array
           let players: any[] = [];
           try {
             players = typeof session.players === 'string' ? JSON.parse(session.players) : (Array.isArray(session.players) ? session.players : []);
@@ -158,11 +151,51 @@ export function setupSocketHandlers(io: Server) {
             console.error('Failed to parse players:', e);
             players = [];
           }
+          // Prevent duplicate account join
+          // Strict duplicate join prevention
+          if (data.userId) {
+            // Authenticated: block if any connected player has same userId (except this socket)
+            const alreadyIn = players.find((p: any) =>
+              p.userId === data.userId &&
+              p.connected !== false &&
+              p.socketId !== socket.id
+            );
+            if (alreadyIn) {
+              socket.emit('ROOM_ERROR', {
+                error: 'ALREADY_JOINED',
+                message: 'This account is already connected to this game.'
+              });
+              console.warn(`[SERVER] Prevented duplicate join for userId ${data.userId} in room ${pin}`);
+              return;
+            }
+          } else {
+            // Guest: block if any connected player has same playerId (except this socket)
+            const alreadyIn = players.find((p: any) =>
+              p.id === playerId &&
+              p.connected !== false &&
+              p.socketId !== socket.id
+            );
+            if (alreadyIn) {
+              socket.emit('ROOM_ERROR', {
+                error: 'ALREADY_JOINED',
+                message: 'This guest is already connected to this game.'
+              });
+              console.warn(`[SERVER] Prevented duplicate join for guest playerId ${playerId} in room ${pin}`);
+              return;
+            }
+          }
+          // If player already had a connection, it means they're reconnecting
+          const oldSocketId = roomConnections.get(pin)!.get(playerId);
+          if (oldSocketId && oldSocketId !== socket.id) {
+            console.log(`Player ${playerId} reconnecting with new socket ${socket.id}, old socket was ${oldSocketId}`);
+          }
+          // Update to new socket ID in roomConnections
+          roomConnections.get(pin)!.set(playerId, socket.id);
+          // Update player connection status and socketId in session.players array
           const player = players.find((p: any) => p.id === playerId);
           if (player) {
             player.connected = true;
             player.socketId = socket.id;
-            
             await prisma.gameSession.update({
               where: { pin },
               data: { 
@@ -170,21 +203,20 @@ export function setupSocketHandlers(io: Server) {
                 lastActiveAt: new Date()
               }
             });
-            
             // Send updated session with connected player to the reconnecting client
             const updatedSession = await prisma.gameSession.findUnique({
               where: { pin },
               include: { quiz: true }
             });
-            
             // Notify ALL clients in the room (including this one) about the updated players
             io.to(pin).emit('LOBBY_UPDATE', { 
               pin, 
               players: typeof updatedSession?.players === 'string' ? JSON.parse(updatedSession.players) : [] 
             });
-            
-            console.log(`Player ${playerId} marked as connected`);
+            console.log(`[SERVER] Player ${playerId} marked as connected and socketId updated in both roomConnections and session.players array: ${socket.id}`);
           }
+          // Extra logging to confirm both sources
+          console.log(`[SERVER] roomConnections for ${pin}:`, Array.from(roomConnections.get(pin)!.entries()));
         }
         
         // Send success confirmation
@@ -279,8 +311,25 @@ export function setupSocketHandlers(io: Server) {
           }
         });
 
-        // Broadcast to all clients in the room
-        io.to(pin).emit('START_SIGNAL', { pin, quiz });
+        // Broadcast to all clients in the room and track pending ACKs
+        const session = await prisma.gameSession.findUnique({ where: { pin } });
+        let players: any[] = [];
+        try {
+          players = typeof session?.players === 'string' ? JSON.parse(session.players) : (Array.isArray(session?.players) ? session.players : []);
+        } catch (e) { players = []; }
+        if (!pendingAcks.has(pin)) pendingAcks.set(pin, new Map());
+        players.forEach((p: any) => {
+          if (p.id) {
+            pendingAcks.get(pin)!.set(p.id, { event: 'START_SIGNAL', payload: { pin, quiz } });
+            const playerSocketId = roomConnections.get(pin)?.get(p.id);
+            if (playerSocketId) {
+              console.log(`[SERVER] Emitting START_SIGNAL to player ${p.id} (socket ${playerSocketId}) in room ${pin}`);
+              io.to(playerSocketId).emit('START_SIGNAL', { pin, quiz });
+            } else {
+              console.warn(`[SERVER] No socketId for player ${p.id} in room ${pin} when emitting START_SIGNAL`);
+            }
+          }
+        });
       } catch (error) {
         console.error('Start signal error:', error);
       }
@@ -350,10 +399,53 @@ export function setupSocketHandlers(io: Server) {
           data: updateData
         });
 
-        // Broadcast to all clients except sender
-        socket.to(pin).emit('STATE_SYNC', data);
+        // Broadcast to all clients except sender and track pending ACKs
+        const session = await prisma.gameSession.findUnique({ where: { pin } });
+        let players: any[] = [];
+        try {
+          players = typeof session?.players === 'string' ? JSON.parse(session.players) : (Array.isArray(session?.players) ? session.players : []);
+        } catch (e) { players = []; }
+        if (!pendingAcks.has(pin)) pendingAcks.set(pin, new Map());
+        players.forEach((p: any) => {
+          if (p.id && p.id !== undefined && p.id !== null) {
+            // Always use roomConnections for up-to-date socketId
+            const playerSocketId = roomConnections.get(pin)?.get(p.id);
+            if (playerSocketId && playerSocketId !== socket.id) {
+              pendingAcks.get(pin)!.set(p.id, { event: 'STATE_SYNC', payload: data });
+              console.log(`[SERVER] Emitting STATE_SYNC to player ${p.id} (socket ${playerSocketId}) in room ${pin} with state`, data);
+              io.to(playerSocketId).emit('STATE_SYNC', data);
+            } else if (!playerSocketId) {
+              console.warn(`[SERVER] No socketId for player ${p.id} in room ${pin} when emitting STATE_SYNC`);
+            }
+          }
+        });
       } catch (error) {
         console.error('State sync error:', error);
+      }
+    });
+    // Handle ACKs from clients for critical events
+    socket.on('EVENT_ACK', (data: { pin: string; playerId: string; event: string }) => {
+      const { pin, playerId, event } = data;
+      console.log(`[SERVER] Received EVENT_ACK for ${event} from player ${playerId} in room ${pin}`);
+      if (pendingAcks.has(pin)) {
+        const playerMap = pendingAcks.get(pin)!;
+        if (playerMap.has(playerId) && playerMap.get(playerId)!.event === event) {
+          playerMap.delete(playerId);
+        }
+      }
+    });
+
+    // On reconnect or join, resend any pending critical events
+    socket.on('JOIN_ROOM', async (data: { pin: string; playerId?: string; userId?: string }) => {
+      // ...existing code...
+
+      // After join logic, check for pending ACKs
+      if (data.playerId && pendingAcks.has(data.pin)) {
+        const playerMap = pendingAcks.get(data.pin)!;
+        if (playerMap.has(data.playerId)) {
+          const pending = playerMap.get(data.playerId)!;
+          socket.emit(pending.event, pending.payload);
+        }
       }
     });
 
@@ -403,19 +495,21 @@ export function setupSocketHandlers(io: Server) {
                 // Only mark as disconnected if their current socketId matches this disconnecting socket
                 // (prevents marking as disconnected if they already reconnected with a new socket)
                 if (player && player.socketId === socket.id) {
-                  player.connected = false;
-                  player.socketId = undefined;
-                  
+                  // Remove player from the list entirely
+                  const updatedPlayers = players.filter((p: any) => p.id !== playerId);
                   await prisma.gameSession.update({
                     where: { pin },
-                    data: { players: JSON.stringify(players) }
+                    data: { players: JSON.stringify(updatedPlayers) }
                   });
-                  
-                  // Notify others in the room
+                  // Notify all clients in the room with the new player list
+                  io.to(pin).emit('LOBBY_UPDATE', { pin, players: updatedPlayers });
+                  // Also emit PLAYER_DISCONNECTED for legacy UI
                   io.to(pin).emit('PLAYER_DISCONNECTED', { pin, playerId, connected: false });
-                  console.log(`Player ${playerId} disconnected from room ${pin}`);
+                  console.log(`Player ${playerId} removed from room ${pin} on disconnect`);
                 } else if (player) {
-                  console.log(`Socket ${socket.id} disconnected but player ${playerId} already reconnected with socket ${player.socketId}`);
+                  if (typeof player.socketId === 'string' && player.socketId !== socket.id) {
+                    console.log(`Socket ${socket.id} disconnected but player ${playerId} already reconnected with socket ${player.socketId}`);
+                  }
                 }
               }
               

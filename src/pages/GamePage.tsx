@@ -141,6 +141,7 @@ const GamePage: React.FC = () => {
         
         // Join room with player ID
         newSocket.emit('JOIN_ROOM', { pin, playerId: humanId.current });
+          newSocket.emit('JOIN_ROOM', { pin, playerId: humanId.current, userId: user?.id });
         
         // Start if already in progress - use the quiz from the response
         if (session.state !== 'LOBBY') {
@@ -201,29 +202,34 @@ const GamePage: React.FC = () => {
       }
     });
 
+    // Robust delivery: ACK for START_SIGNAL
+    socket.on('START_SIGNAL', (data: { pin: string; quiz: any }) => {
+      console.log('[CLIENT] Received START_SIGNAL', data);
+      socket.emit('EVENT_ACK', { pin: data.pin, playerId: humanId.current, event: 'START_SIGNAL' });
+      // Optionally, trigger any UI or state update if needed
+    });
+
     socket.on('STATE_SYNC', (data: { pin: string; state: any; index?: number; timeLeft?: number }) => {
       if (!isHost && data.pin === pin) {
+        console.log('[CLIENT] Received STATE_SYNC', data);
+        // Send ACK for STATE_SYNC
+        socket.emit('EVENT_ACK', { pin, playerId: humanId.current, event: 'STATE_SYNC' });
+        // Always update question index and game state
         if (data.index !== undefined) {
           setCurrentQuestionIndex(data.index);
         }
         if (data.timeLeft !== undefined) {
           setTimeLeft(data.timeLeft);
         } else if (data.state === GameState.QUESTION_ACTIVE || Number(data.state) === GameState.QUESTION_ACTIVE) {
-          // Fallback: if host didn't send timeLeft, default to question limit to avoid stuck timer
-          setTimeLeft(prev => {
-            if (prev > 0) return prev;
+          setTimeLeft(() => {
             const idx = data.index !== undefined ? data.index : currentQuestionIndex;
             const limit = quiz?.questions?.[idx]?.timeLimit || 20;
             return limit;
           });
         }
-        
-        // Clear answers when starting a new question (state is numeric enum)
         if (data.state === GameState.QUESTION_INTRO || Number(data.state) === GameState.QUESTION_INTRO) {
-          console.log('Clearing answersSubmitted for new question');
           setAnswersSubmitted({});
         }
-        
         setGameState(data.state as GameState);
       }
     });

@@ -58,6 +58,10 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
     }
   }, [gameState, question]);
 
+  // Touch drag state
+  const touchDrag = useRef<{startY: number, idx: number, dragging: boolean} | null>(null);
+  const dragTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const handleDragStart = (idx: number) => {
     setDraggingIndex(idx);
   };
@@ -65,18 +69,52 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   const handleDragOver = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
     if (draggingIndex === null || draggingIndex === idx) return;
-    
     const newSequence = [...currentSequence];
     const draggedItem = newSequence[draggingIndex];
     newSequence.splice(draggingIndex, 1);
     newSequence.splice(idx, 0, draggedItem);
-    
     setCurrentSequence(newSequence);
     setDraggingIndex(idx);
   };
 
   const handleDragEnd = () => {
     setDraggingIndex(null);
+  };
+
+  // Touch drag handlers for mobile
+  const handleTouchStart = (idx: number, e: React.TouchEvent) => {
+    if (dragTimeout.current) clearTimeout(dragTimeout.current);
+    dragTimeout.current = setTimeout(() => {
+      touchDrag.current = { startY: e.touches[0].clientY, idx, dragging: true };
+      setDraggingIndex(idx);
+      document.body.style.overflow = 'hidden'; // Prevent scroll
+    }, 200); // Long-press to start drag
+  };
+
+  const handleTouchMove = (e: React.TouchEvent, idx: number) => {
+    if (!touchDrag.current || !touchDrag.current.dragging) return;
+    const moveY = e.touches[0].clientY;
+    const deltaY = moveY - touchDrag.current.startY;
+    // Find which item we're over
+    const overIdx = idx;
+    if (draggingIndex !== null && overIdx !== draggingIndex) {
+      const newSequence = [...currentSequence];
+      const draggedItem = newSequence[draggingIndex];
+      newSequence.splice(draggingIndex, 1);
+      newSequence.splice(overIdx, 0, draggedItem);
+      setCurrentSequence(newSequence);
+      setDraggingIndex(overIdx);
+      touchDrag.current.idx = overIdx;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragTimeout.current) clearTimeout(dragTimeout.current);
+    if (touchDrag.current && touchDrag.current.dragging) {
+      setDraggingIndex(null);
+      touchDrag.current = null;
+      document.body.style.overflow = '';
+    }
   };
 
   const handleSwap = (idxA: number, idxB: number) => {
@@ -202,13 +240,10 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
                   <div className={`flex flex-col gap-4 w-full ${(currentSequence || []).length > 5 ? 'max-w-3xl' : 'max-w-2xl'}`}>
                     {(currentSequence || []).map((item, idx) => (
-                      <div 
+                      <div
                         key={item}
-                        draggable
-                        onDragStart={() => handleDragStart(idx)}
-                        onDragOver={(e) => handleDragOver(e, idx)}
-                        onDragEnd={handleDragEnd}
-                        className={`relative glass p-6 rounded-2xl flex items-center justify-between border-2 transition-all cursor-grab active:cursor-grabbing group ${draggingIndex === idx ? 'opacity-30 border-dashed border-indigo-500 scale-95' : 'border-white/5 hover:border-indigo-500/50 hover:bg-white/5'}`}
+                        className={`relative glass p-6 rounded-2xl flex items-center justify-between border-2 transition-all group ${draggingIndex === idx ? 'opacity-30 border-dashed border-indigo-500 scale-95' : 'border-white/5 hover:border-indigo-500/50 hover:bg-white/5'}`}
+                        // Desktop drag events only on grip
                       >
                         <div className="flex items-center gap-6">
                           <span className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-black text-sm border border-indigo-500/20">
@@ -216,8 +251,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                           </span>
                           <span className="text-lg font-bold text-white uppercase tracking-wider">{item}</span>
                         </div>
-                        
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2 opacity-100 transition-opacity">
                           {idx > 0 && (
                             <button onClick={() => handleSwap(idx, idx - 1)} className="p-2 text-slate-500 hover:text-white transition-colors">
                               <i className="bi bi-chevron-up"></i>
@@ -228,7 +262,21 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                               <i className="bi bi-chevron-down"></i>
                             </button>
                           )}
-                          <i className="bi bi-grip-vertical text-slate-500 ml-2"></i>
+                          {/* Drag handle: desktop and mobile */}
+                          <span
+                            className="bi bi-grip-vertical text-slate-500 ml-2 cursor-grab active:cursor-grabbing touch-none"
+                            draggable
+                            onDragStart={() => handleDragStart(idx)}
+                            onDragOver={(e) => handleDragOver(e, idx)}
+                            onDragEnd={handleDragEnd}
+                            onTouchStart={(e) => handleTouchStart(idx, e)}
+                            onTouchMove={(e) => handleTouchMove(e, idx)}
+                            onTouchEnd={handleTouchEnd}
+                            style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+                            aria-label="Drag to reorder"
+                            role="button"
+                            tabIndex={0}
+                          ></span>
                         </div>
                       </div>
                     ))}
