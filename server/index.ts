@@ -103,7 +103,7 @@ app.use((req, res, next) => {
 
 // Serve static files from dist in production
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
+  const distPath = path.join(__dirname, '..');
   app.use(express.static(distPath, {
     maxAge: '1d',
     etag: false,
@@ -125,7 +125,7 @@ app.get('/api/health', (req, res) => {
 // Serve index.html for client-side routing in production
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
   });
 }
 
