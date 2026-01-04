@@ -550,6 +550,7 @@ router.post('/', requireAuth, async (req, res) => {
         description: sanitizeText(description || ''),
         visibility: normalizeVisibility(visibility),
         authorName: user.username,
+        authorProfilePicture: user.profilePicture,
         userId,
         questions: {
           create: questions.map((q: any) => serializeQuestion({
@@ -621,6 +622,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         genre,
         description: sanitizeText(description),
         visibility: normalizeVisibility(visibility || existingQuiz.visibility),
+        authorProfilePicture: existingQuiz.authorProfilePicture,
         questions: {
           create: questions.map((q: any) => serializeQuestion({
             ...q,
