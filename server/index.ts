@@ -48,7 +48,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Security headers - Prevent XSS attacks
 app.use((req, res, next) => {
   // Content Security Policy
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;");
   
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
