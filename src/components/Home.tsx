@@ -38,9 +38,6 @@ const Home: React.FC<HomeProps> = ({ user, onStart, onSolo, onJoin }) => {
       <div className="absolute bottom-[20%] left-[-10%] w-64 sm:w-96 h-64 sm:h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="mb-8 sm:mb-16 text-center z-10">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black tracking-[0.3em] uppercase mb-4 sm:mb-6">
-            <i className="bi bi-lightning-charge-fill"></i> Version 1.0
-        </div>
         <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter text-white drop-shadow-[0_0_40px_rgba(56,189,248,0.1)]">
           QUIZ<span style={{ background: 'linear-gradient(to right, #60a5fa, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>LY</span>
         </h1>

@@ -38,6 +38,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Password:</strong> Securely hashed and stored</li>
               <li><strong>Profile Picture:</strong> Optional image you upload</li>
               <li><strong>Account Creation Date:</strong> Timestamp of when you joined</li>
+              <li><strong>Last Online Date:</strong> The last time you were active on Quizly</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-white mb-3 mt-6">2.2 Game and Usage Data</h3>
@@ -47,7 +48,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Game Statistics:</strong> Your scores, experience points (XP), coins, and level</li>
               <li><strong>Gameplay History:</strong> Records of games played, questions answered, and performance metrics</li>
               <li><strong>Play Count:</strong> Number of times your quizzes have been played</li>
-              <li><strong>Preferences:</strong> Settings like profile visibility, quiz stats display, and anonymous mode</li>
+              <li><strong>Preferences:</strong> Settings like profile visibility, quiz stats display, anonymous mode, and privacy controls for join date and last online date</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-white mb-3 mt-6">2.3 Session and Technical Data</h3>
@@ -155,7 +156,7 @@ const PrivacyPolicy: React.FC = () => {
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li><strong>Public Content:</strong> Public quizzes are visible to all users</li>
               <li><strong>Gameplay:</strong> Your username and scores are visible to other players during games</li>
-              <li><strong>Profile Settings:</strong> Based on your privacy settings (profile visibility, anonymous mode)</li>
+              <li><strong>Profile Settings:</strong> Based on your privacy settings (profile visibility, anonymous mode, and granular controls for join date and last online date)</li>
               <li><strong>Administrator Access:</strong> Our administrators may access user content and data for legal reasons, security purposes, safeguarding users, investigating violations of our Terms of Service, or responding to abuse reports</li>
               <li><strong>Legal Requirements:</strong> If required by law, court order, or to protect our rights and the safety of our users</li>
               <li><strong>AI Processing:</strong> Quiz generation prompts may be sent to third-party AI services (Google Gemini) if configured</li>
@@ -172,7 +173,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Access:</strong> View your account information and quiz data</li>
               <li><strong>Edit:</strong> Update your username, password, and profile picture</li>
               <li><strong>Delete:</strong> Remove your quizzes or delete your account entirely</li>
-              <li><strong>Privacy Controls:</strong> Adjust profile visibility and anonymous mode settings</li>
+              <li><strong>Privacy Controls:</strong> Adjust profile visibility, anonymous mode, and granular privacy settings for displaying your join date and last online date to others</li>
               <li><strong>Quiz Visibility:</strong> Set quizzes to Public, Private, or Draft</li>
               <li><strong>Play as Guest:</strong> Use the Service without creating an account (limited features)</li>
             </ul>
@@ -252,7 +253,7 @@ const PrivacyPolicy: React.FC = () => {
               <li>Don't sell your personal information</li>
               <li>May access user content for legal, security, or safeguarding purposes</li>
               <li>Clear inactive game sessions automatically</li>
-              <li>Give you control over your data and privacy settings</li>
+              <li>Give you control over your data and privacy settings, including who can see your join date and last online date</li>
               <li>Use cookies for sessions and PWA functionality</li>
             </ul>
           </section>

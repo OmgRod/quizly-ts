@@ -95,6 +95,7 @@ router.get('/:id', async (req, res) => {
         xp: true,
         coins: true,
         createdAt: true,
+        lastActiveAt: true,
         profilePicture: true,
         profileVisibility: true,
         showQuizStats: true,
@@ -225,7 +226,9 @@ router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
         isAdmin: true,
         isSuspended: true,
         acceptedTosVersion: true,
-        acceptedPrivacyVersion: true
+        acceptedPrivacyVersion: true,
+        createdAt: true,
+        lastActiveAt: true
       }
     });
 

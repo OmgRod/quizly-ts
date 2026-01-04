@@ -118,7 +118,9 @@ router.post('/login', async (req, res) => {
         isAdmin: true,
         isSuspended: true,
         acceptedTosVersion: true,
-        acceptedPrivacyVersion: true
+        acceptedPrivacyVersion: true,
+        createdAt: true,
+        lastActiveAt: true
       }
     });
     
@@ -136,26 +138,33 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Set session (httpOnly cookie is set automatically)
-    req.session.userId = user.id;
-
-    res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        totalPoints: user.totalPoints,
-        xp: user.xp,
-        coins: user.coins,
-        profilePicture: user.profilePicture,
-        profileVisibility: user.profileVisibility,
-        showQuizStats: user.showQuizStats,
-        anonymousMode: user.anonymousMode,
-        isAdmin: user.isAdmin,
-        isSuspended: user.isSuspended,
-        acceptedTosVersion: user.acceptedTosVersion,
-        acceptedPrivacyVersion: user.acceptedPrivacyVersion
+    // Update lastActiveAt
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+      select: {
+        id: true,
+        username: true,
+        totalPoints: true,
+        xp: true,
+        coins: true,
+        profilePicture: true,
+        profileVisibility: true,
+        showQuizStats: true,
+        anonymousMode: true,
+        isAdmin: true,
+        isSuspended: true,
+        acceptedTosVersion: true,
+        acceptedPrivacyVersion: true,
+        createdAt: true,
+        lastActiveAt: true
       }
     });
+
+    // Set session (httpOnly cookie is set automatically)
+    req.session.userId = updatedUser.id;
+
+    res.json({ user: updatedUser });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Failed to login' });
@@ -190,7 +199,9 @@ router.get('/me', meRateLimiter, requireAuth, async (req, res) => {
         isAdmin: true,
         isSuspended: true,
         acceptedTosVersion: true,
-        acceptedPrivacyVersion: true
+        acceptedPrivacyVersion: true,
+        createdAt: true,
+        lastActiveAt: true
       }
     });
 
