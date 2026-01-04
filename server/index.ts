@@ -5,6 +5,7 @@ import session from 'express-session';
 import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import quizRoutes from './routes/quiz.js';
 import gameRoutes from './routes/game.js';
@@ -13,6 +14,10 @@ import adminRoutes from './routes/admin.js';
 import { setupSocketHandlers } from './socket.js';
 import { validateInput, validatePagination } from './middleware/inputValidation.js';
 import prisma from './prisma.js';
+
+// Create __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
