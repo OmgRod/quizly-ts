@@ -3,8 +3,14 @@ import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { generateToken, requireAuth } from '../middleware/auth';
 import { isValidUsername } from '../middleware/inputValidation';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+const meRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs for this route
+});
 
 // Extend session type
 declare module 'express-session' {
@@ -138,7 +144,7 @@ router.post('/logout', (req, res) => {
 });
 
 // Get current user
-router.get('/me', requireAuth, async (req, res) => {
+router.get('/me', meRateLimiter, requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
