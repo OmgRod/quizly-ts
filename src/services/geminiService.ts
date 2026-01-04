@@ -122,9 +122,30 @@ export async function generateQuizFromAI(topic: string, count: number = 5, userI
       return q;
     });
 
+    // Gemini bug: sometimes returns one less than requested
+    let questions = validatedQuestions;
+    if (questions.length < count && quizData.questions && quizData.questions.length > questions.length) {
+      // Try to fill from raw data if possible
+      questions = quizData.questions.slice(0, count);
+    }
+    // Always return exactly 'count' questions (pad or trim)
+    if (questions.length < count) {
+      // Pad with dummy questions if needed
+      while (questions.length < count) {
+        questions.push({
+          id: Math.random().toString(36).substr(2, 9),
+          type: QuestionType.MULTIPLE_CHOICE,
+          pointType: PointType.NORMAL,
+          text: "(Extra placeholder question)",
+          options: ["Option A", "Option B"],
+          correctIndices: [0],
+          timeLimit: 20
+        });
+      }
+    }
     return {
       ...quizData,
-      questions: validatedQuestions.slice(0, count),
+      questions: questions.slice(0, count),
       id: Math.random().toString(36).substr(2, 9),
       userId,
       createdAt: Date.now(),

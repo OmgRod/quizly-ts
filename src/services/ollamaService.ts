@@ -121,9 +121,28 @@ Respond with ONLY the JSON object, no markdown formatting or other text.`;
       return q;
     });
 
+    // Ollama bug: sometimes returns one more than requested
+    let questions = validatedQuestions;
+    if (questions.length > count) {
+      questions = questions.slice(0, count);
+    }
+    // Always return exactly 'count' questions (pad if needed)
+    if (questions.length < count) {
+      while (questions.length < count) {
+        questions.push({
+          id: Math.random().toString(36).substr(2, 9),
+          type: QuestionType.MULTIPLE_CHOICE,
+          pointType: PointType.NORMAL,
+          text: "(Extra placeholder question)",
+          options: ["Option A", "Option B"],
+          correctIndices: [0],
+          timeLimit: 20
+        });
+      }
+    }
     return {
       ...quizData,
-      questions: validatedQuestions.slice(0, count),
+      questions,
       id: Math.random().toString(36).substr(2, 9),
       userId,
       createdAt: Date.now(),
