@@ -24,7 +24,7 @@ router.post('/register', async (req, res) => {
 
     // Validate username format
     if (!isValidUsername(username)) {
-      return res.status(400).json({ error: 'Username must be 3-32 characters, alphanumeric with - and _ only' });
+      return res.status(400).json({ error: 'Username must be 3-32 characters, alphanumeric only' });
     }
 
     // Validate password length

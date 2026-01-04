@@ -93,9 +93,9 @@ export const isValidUUID = (uuid: string): boolean => {
 };
 
 /**
- * Validate alphanumeric with special characters (for usernames, etc)
+ * Validate alphanumeric only (for usernames, etc)
  */
 export const isValidUsername = (username: string): boolean => {
-  const usernameRegex = /^[a-zA-Z0-9_-]{3,32}$/;
+  const usernameRegex = /^[a-zA-Z0-9]{3,32}$/;
   return usernameRegex.test(username);
 };
