@@ -132,7 +132,15 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
               failedFiles.push(`${file.name}: Quiz with name "${result.quiz.title}" already exists`);
               console.log(`Skipped ${file.name}: Quiz with name "${result.quiz.title}" already exists`);
             } else {
-              await quizAPI.create(result.quiz);
+              // Send only essential fields - server auto-generates createdAt, playCount, id, userId
+              const cleanQuiz = {
+                title: result.quiz.title,
+                genre: result.quiz.genre,
+                description: result.quiz.description,
+                visibility: result.quiz.visibility || 'DRAFT',
+                questions: result.quiz.questions
+              };
+              await quizAPI.create(cleanQuiz);
               successCount++;
               existingQuizzes.push(result.quiz); // Add to list for subsequent checks
             }
