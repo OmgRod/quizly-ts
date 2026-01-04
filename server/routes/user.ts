@@ -2,24 +2,34 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
+import { isValidUUID } from '../middleware/inputValidation';
 
 const router = Router();
 
 // Get global leaderboard
 router.get('/leaderboard/global', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
-    const type = (req.query.type as string) || 'xp'; // 'xp', 'coins', or 'points'
+    // Sanitize and validate query parameters
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 100); // 1-100 limit
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0); // Non-negative
+    const type = (req.query.type as string) || 'xp';
 
-    // Determine sort field based on type
+    // Validate type to prevent injection
+    const validTypes = ['xp', 'coins', 'points'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ error: 'Invalid sort type' });
+    }
+
+    // Determine sort field based on type (using whitelist)
     let orderBy: any;
     if (type === 'xp') {
       orderBy = { xp: 'desc' };
     } else if (type === 'coins') {
       orderBy = { coins: 'desc' };
-    } else {
+    } else if (type === 'points') {
       orderBy = { totalPoints: 'desc' };
+    } else {
+      orderBy = { xp: 'desc' }; // Default fallback
     }
 
     const users = await prisma.user.findMany({
@@ -58,6 +68,11 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const requesterId = req.userId; // From session if authenticated
+
+    // Validate user ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -224,6 +239,11 @@ router.get('/:id/quizzes', async (req, res) => {
   try {
     const { id } = req.params;
     const requesterId = req.userId; // From session if authenticated
+
+    // Validate user ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
 
     // Check if user has showQuizStats enabled
     const user = await prisma.user.findUnique({

@@ -8,6 +8,7 @@ import quizRoutes from './routes/quiz';
 import gameRoutes from './routes/game';
 import userRoutes from './routes/user';
 import { setupSocketHandlers } from './socket';
+import { validateInput, validatePagination } from './middleware/inputValidation';
 import prisma from './prisma';
 
 const app = express();
@@ -26,6 +27,10 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Input validation and sanitization middleware
+app.use(validateInput);
+app.use(validatePagination);
 
 // Session middleware
 app.use(session({

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
+import { isValidUUID } from '../middleware/inputValidation';
 
 // Helper to deserialize questions from quiz
 const deserializeQuestion = (q: any) => ({
@@ -13,6 +14,9 @@ const deserializeQuestion = (q: any) => ({
   targetLatLng: q.targetLatLng ? JSON.parse(q.targetLatLng) : null
 });
 
+// Validate PIN format (should be numeric string)
+const isValidPIN = (pin: string): boolean => /^\d{6,8}$/.test(pin);
+
 const router = Router();
 
 // Create game session
@@ -20,6 +24,11 @@ router.post('/create', requireAuth, async (req, res) => {
   try {
     const { quizId, solo } = req.body;
     const userId = req.session.userId!;
+
+    // Validate quiz ID format
+    if (!isValidUUID(quizId)) {
+      return res.status(400).json({ error: 'Invalid quiz ID format' });
+    }
 
     // Validate quiz visibility and ownership before allowing hosting
     const quiz = await prisma.quiz.findUnique({
@@ -79,6 +88,16 @@ router.post('/create', requireAuth, async (req, res) => {
 router.post('/join', async (req, res) => {
   try {
     const { pin, playerName, userId } = req.body;
+
+    // Validate PIN format
+    if (!isValidPIN(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN format' });
+    }
+
+    // Validate player name length
+    if (!playerName || playerName.length > 50) {
+      return res.status(400).json({ error: 'Player name must be 1-50 characters' });
+    }
 
     const session = await prisma.gameSession.findUnique({
       where: { pin },
@@ -141,6 +160,11 @@ router.get('/:pin', async (req, res) => {
   try {
     const { pin } = req.params;
 
+    // Validate PIN format
+    if (!isValidPIN(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN format' });
+    }
+
     const session = await prisma.gameSession.findUnique({
       where: { pin },
       include: {
@@ -197,6 +221,16 @@ router.put('/:pin', async (req, res) => {
     const { pin } = req.params;
     const { players, currentQuestionIndex, state, isActive } = req.body;
 
+    // Validate PIN format
+    if (!isValidPIN(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN format' });
+    }
+
+    // Validate currentQuestionIndex if provided
+    if (currentQuestionIndex !== undefined && (typeof currentQuestionIndex !== 'number' || currentQuestionIndex < 0)) {
+      return res.status(400).json({ error: 'Invalid question index' });
+    }
+
     const updateData: any = {};
     if (players !== undefined) updateData.players = JSON.stringify(players);
     if (currentQuestionIndex !== undefined) updateData.currentQuestionIndex = currentQuestionIndex;
@@ -226,6 +260,16 @@ router.post('/:pin/end', async (req, res) => {
   try {
     const { pin } = req.params;
     const { players } = req.body;
+
+    // Validate PIN format
+    if (!isValidPIN(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN format' });
+    }
+
+    // Validate players array
+    if (!Array.isArray(players)) {
+      return res.status(400).json({ error: 'Invalid players data' });
+    }
 
     const session = await prisma.gameSession.update({
       where: { pin },

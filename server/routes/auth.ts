@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { generateToken, requireAuth } from '../middleware/auth';
+import { isValidUsername } from '../middleware/inputValidation';
 
 const router = Router();
 
@@ -19,6 +20,16 @@ router.post('/register', async (req, res) => {
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    // Validate username format
+    if (!isValidUsername(username)) {
+      return res.status(400).json({ error: 'Username must be 3-32 characters, alphanumeric with - and _ only' });
+    }
+
+    // Validate password length
+    if (password.length < 6 || password.length > 128) {
+      return res.status(400).json({ error: 'Password must be 6-128 characters' });
     }
 
     // Check if user already exists

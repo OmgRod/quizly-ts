@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
+import { isValidUUID } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
 
 // Helper to serialize JSON fields to strings for SQLite
@@ -296,30 +297,42 @@ router.get('/', async (req, res) => {
     const { genre, search, userId, sort } = req.query;
     const viewerId = req.session?.userId as string | undefined;
 
+    // Sanitize and validate query parameters
+    const sanitizedGenre = genre ? String(genre).trim() : null;
+    const sanitizedSearch = search ? String(search).trim().substring(0, 100) : null; // Max 100 chars
+    const sanitizedUserId = userId ? String(userId).trim() : null;
+    const sanitizedSort = sort ? String(sort).trim() : null;
+
+    // Validate sort to prevent injection (whitelist approach)
+    const validSorts = ['updated', 'oldest', 'name', 'trending', 'popular'];
+    if (sanitizedSort && !validSorts.includes(sanitizedSort)) {
+      return res.status(400).json({ error: 'Invalid sort parameter' });
+    }
+
     const where: any = {};
     
-    if (genre && genre !== 'All') {
-      where.genre = genre as string;
+    if (sanitizedGenre && sanitizedGenre !== 'All') {
+      where.genre = sanitizedGenre;
     }
     
-    if (search) {
+    if (sanitizedSearch) {
       where.OR = [
         {
           title: {
-            contains: search as string
+            contains: sanitizedSearch
           }
         },
         {
           description: {
-            contains: search as string
+            contains: sanitizedSearch
           }
         }
       ];
     }
     
-    if (userId) {
-      where.userId = userId as string;
-      const isOwner = viewerId && viewerId === userId;
+    if (sanitizedUserId) {
+      where.userId = sanitizedUserId;
+      const isOwner = viewerId && viewerId === sanitizedUserId;
       if (!isOwner) {
         where.visibility = 'PUBLIC';
       }
@@ -328,15 +341,15 @@ router.get('/', async (req, res) => {
       where.visibility = 'PUBLIC';
     }
 
-    // Determine sort order
+    // Determine sort order using whitelist
     let orderBy: any = { createdAt: 'desc' }; // default
-    if (sort === 'updated') {
+    if (sanitizedSort === 'updated') {
       orderBy = { updatedAt: 'desc' };
-    } else if (sort === 'oldest') {
+    } else if (sanitizedSort === 'oldest') {
       orderBy = { createdAt: 'asc' };
-    } else if (sort === 'name') {
+    } else if (sanitizedSort === 'name') {
       orderBy = { title: 'asc' };
-    } else if (sort === 'trending' || sort === 'popular') {
+    } else if (sanitizedSort === 'trending' || sanitizedSort === 'popular') {
       orderBy = { playCount: 'desc' };
     }
 
@@ -374,6 +387,11 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const viewerId = req.session?.userId as string | undefined;
+
+    // Validate quiz ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid quiz ID format' });
+    }
 
     const quiz = await prisma.quiz.findUnique({
       where: { id },
@@ -470,6 +488,11 @@ router.put('/:id', requireAuth, async (req, res) => {
     const { title, genre, description, questions, visibility } = req.body;
     const userId = req.session.userId!;
 
+    // Validate quiz ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid quiz ID format' });
+    }
+
     const validationError = validatePlayableQuiz({ title, genre, questions });
     if (validationError) {
       return res.status(400).json({ error: validationError });
@@ -529,6 +552,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     const userId = req.session.userId!;
 
+    // Validate quiz ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid quiz ID format' });
+    }
+
     // Check if user owns this quiz
     const existingQuiz = await prisma.quiz.findUnique({
       where: { id }
@@ -557,6 +585,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
 router.post('/:id/play', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validate quiz ID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ error: 'Invalid quiz ID format' });
+    }
 
     const quiz = await prisma.quiz.update({
       where: { id },
