@@ -153,7 +153,7 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
       }
 
       // Validate question type
-      const allValidTypes = [...typesRequiringOptions, ...typesWithoutOptions];
+      const allValidTypes = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'PUZZLE', 'POLL', 'INPUT', 'WORD_CLOUD', 'OPEN_ENDED', 'AUDIO_QUIZ', 'IMAGE_QUIZ', 'SLIDER', 'SCALE', 'FLASHCARD', 'MATCHING'];
       if (q.type && !allValidTypes.includes(q.type)) {
         return { valid: false, error: `Question ${i + 1}: Invalid question type: ${q.type}` };
       }
