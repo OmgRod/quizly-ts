@@ -1,34 +1,48 @@
 # Build Cache Fix
 
-The error you're seeing is likely due to a build cache issue. The function `getLevelProgress` IS properly exported in `src/types.ts`, but the build system is having trouble resolving it.
+The error you're seeing indicates that `getLevelProgress` is not being recognized as an export from `src/types.ts`.
 
-## Quick Fix
+## Root Cause
 
-Run these commands to clear caches and rebuild:
+Your Pi's repository might be out of sync with the latest changes. The `getLevelProgress` function is correctly exported in the main branch, but your local copy may not have it.
 
-```bash
-# Clear Vite cache
-rm -rf node_modules/.vite
+## Solution
 
-# Clear build artifacts
-rm -rf dist
-
-# Reinstall dependencies
-npm install
-
-# Rebuild
-npm run build:prod
-```
-
-## What was fixed
-
-1. Added `"type": "module"` to package.json to eliminate the ES module warning
-2. The exports in src/types.ts are all correct and properly defined
-
-The build should now work correctly. If you still encounter issues, you can try a complete clean install:
+**Option 1: Pull Latest Changes (Recommended)**
 
 ```bash
-rm -rf node_modules package-lock.json
+git fetch origin main
+git pull origin main
 npm install
 npm run build:prod
 ```
+
+**Option 2: Quick Cache Clear**
+
+If you're already on the latest version, try:
+
+```bash
+rm -rf node_modules/.vite dist
+npm install
+npm run build:prod
+```
+
+**Option 3: Manual Verification**
+
+To verify you have the latest `src/types.ts`, check if this function exists:
+
+```bash
+grep -n "export const getLevelProgress" src/types.ts
+```
+
+If it shows nothing, you need to pull the latest changes from the repository.
+
+## What's in the latest version
+
+The `src/types.ts` file should have three leveling utility functions:
+1. `getLevelFromXP(xp)` - Converts XP to player level
+2. `getXPForLevel(level)` - Gets XP requirement for a level
+3. `getLevelProgress(xp)` - Gets detailed level progress info (used by Dashboard, UserProfile, Podium)
+
+These are all properly exported and ready to use.
+
