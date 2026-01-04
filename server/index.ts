@@ -22,6 +22,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 
+// Trust proxy headers (needed for express-rate-limit and X-Forwarded-For)
+app.set('trust proxy', 1);
+
 // Determine CORS origin based on environment
 const corsOrigin = process.env.NODE_ENV === 'production' 
   ? process.env.CLIENT_URL || 'http://localhost:3000'
