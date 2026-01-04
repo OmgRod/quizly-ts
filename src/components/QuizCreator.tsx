@@ -243,7 +243,7 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onQuizCreated, onBack, isSolo
                    <select 
                       value={genre}
                       onChange={(e) => setGenre(e.target.value as QuizGenre)}
-                      className="w-full bg-white/5 border border-white/5 p-5 rounded-2xl font-black text-xs uppercase tracking-widest focus:outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-slate-300"
+                      className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl font-black text-xs uppercase tracking-widest focus:outline-none focus:border-blue-500/50 cursor-pointer text-white transition-all"
                    >
                       {allGenres.map(g => (
                         <option key={g} value={g} className="bg-slate-900">{g}</option>

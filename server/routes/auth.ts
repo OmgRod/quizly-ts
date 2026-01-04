@@ -43,10 +43,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be 6-128 characters' });
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { username }
+    // Check if user already exists (case-insensitive by getting all users and comparing)
+    const allUsers = await prisma.user.findMany({
+      select: { username: true }
     });
+    
+    const usernameLower = username.toLowerCase();
+    const existingUser = allUsers.find(u => u.username.toLowerCase() === usernameLower);
 
     if (existingUser) {
       return res.status(400).json({ error: 'Username already taken' });
@@ -55,7 +58,7 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with original casing
     const user = await prisma.user.create({
       data: {
         username,
@@ -99,10 +102,28 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { username }
+    // Find user (case-insensitive by getting all users and comparing)
+    const allUsers = await prisma.user.findMany({
+      select: { 
+        id: true,
+        username: true,
+        password: true,
+        totalPoints: true,
+        xp: true,
+        coins: true,
+        profilePicture: true,
+        profileVisibility: true,
+        showQuizStats: true,
+        anonymousMode: true,
+        isAdmin: true,
+        isSuspended: true,
+        acceptedTosVersion: true,
+        acceptedPrivacyVersion: true
+      }
     });
+    
+    const usernameLower = username.toLowerCase();
+    const user = allUsers.find(u => u.username.toLowerCase() === usernameLower);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });

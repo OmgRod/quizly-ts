@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Question, GameState, QuestionType, PointType } from '../types';
+import { decodeHtmlEntities } from '../utils/cn';
 
 interface QuestionScreenProps {
   question: Question;
@@ -117,7 +118,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
           <span className="hidden sm:inline">Question {index}/{total} • </span>
           {isAudioQuiz ? "AUDIO QUIZ" : isImageQuiz ? "IMAGE QUIZ" : isWordCloud ? "WORD CLOUD" : isPoll ? "POLL" : isSelectAll ? "SELECT ALL" : question.type.replace('_', ' ')}
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-black text-white leading-tight mb-8 sm:mb-12 md:mb-20 max-w-4xl tracking-tight">{question.text}</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-black text-white leading-tight mb-8 sm:mb-12 md:mb-20 max-w-4xl tracking-tight">{decodeHtmlEntities(question.text)}</h2>
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-2xl sm:text-3xl md:text-4xl font-black text-indigo-400 animate-pulse">
             {introCountdown}
         </div>
@@ -146,7 +147,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
           <div className="text-4xl sm:text-5xl font-black text-white font-mono">{timeLeft}</div>
         </div>
         <div className="max-w-3xl text-center px-4 sm:px-8 md:px-12 order-2 md:order-none">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 leading-tight drop-shadow-2xl">{question.text}</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 leading-tight drop-shadow-2xl">{decodeHtmlEntities(question.text)}</h2>
           {pointIndicator}
           {isSelectAll && <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Multiple Selection Active</p>}
           {isPoll && (
@@ -336,7 +337,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                             )}
                           </div>
                           <div className="text-left flex-1 min-w-0">
-                            <span className={`${isDense ? 'text-sm sm:text-base' : 'text-base sm:text-xl'} font-black ${style.text}`}>{opt}</span>
+                            <span className={`${isDense ? 'text-sm sm:text-base' : 'text-base sm:text-xl'} font-black ${style.text}`}>{decodeHtmlEntities(opt)}</span>
                           </div>
                         </button>
                       );
@@ -377,7 +378,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                             )}
                           </div>
                           <div className="text-left flex-1 min-w-0">
-                            <span className={`${isDense ? 'text-sm sm:text-base' : 'text-base sm:text-xl'} font-black ${style.text}`}>{opt}</span>
+                            <span className={`${isDense ? 'text-sm sm:text-base' : 'text-base sm:text-xl'} font-black ${style.text}`}>{decodeHtmlEntities(opt)}</span>
                           </div>
                         </button>
                       );
@@ -407,7 +408,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                       </div>
                       <div className="text-left flex-1 min-w-0">
                         <div className="text-[8px] sm:text-[10px] font-black uppercase opacity-30 mb-1">Option 0{i+1}</div>
-                        <span className={`${isDense ? 'text-sm sm:text-lg' : 'text-base sm:text-2xl'} font-bold text-white leading-tight block break-words`}>{opt}</span>
+                        <span className={`${isDense ? 'text-sm sm:text-lg' : 'text-base sm:text-2xl'} font-bold text-white leading-tight block break-words`}>{decodeHtmlEntities(opt)}</span>
                       </div>
                     </button>
                   );

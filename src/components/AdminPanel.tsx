@@ -5,6 +5,7 @@ import Card from './ui/Card';
 import Button from './ui/Button';
 import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { LIMITS } from './QuizCreator';
+import ReportsTab from './ReportsTab';
 
 interface Quiz {
   id: string;
@@ -34,7 +35,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function AdminPanel() {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState<'quizzes' | 'users'>('quizzes');
+  const [activeTab, setActiveTab] = useState<'quizzes' | 'users' | 'reports'>('quizzes');
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -267,6 +268,16 @@ export default function AdminPanel() {
         >
           Users ({totalUsers})
         </button>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`px-4 py-2 font-semibold border-b-2 ${
+            activeTab === 'reports'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Reports
+        </button>
       </div>
 
       {/* Quizzes Tab */}
@@ -347,12 +358,12 @@ export default function AdminPanel() {
                         />
                         <select
                           defaultValue={quiz.visibility}
-                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest text-white outline-none focus:border-blue-500/50 transition-all cursor-pointer"
                           id={`quiz-visibility-${quiz.id}`}
                         >
-                          <option value="PUBLIC">Public</option>
-                          <option value="PRIVATE">Private</option>
-                          <option value="UNLISTED">Unlisted</option>
+                          <option value="PUBLIC" className="bg-slate-900">Public</option>
+                          <option value="PRIVATE" className="bg-slate-900">Private</option>
+                          <option value="UNLISTED" className="bg-slate-900">Unlisted</option>
                         </select>
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => setEditingQuiz(null)}>
@@ -538,6 +549,9 @@ export default function AdminPanel() {
           )}
         </div>
       )}
+
+      {/* Reports Tab */}
+      <ReportsTab isActive={activeTab === 'reports'} />
     </div>
   );
 }

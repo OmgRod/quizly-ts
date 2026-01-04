@@ -24,7 +24,7 @@ const SettingsPage: React.FC = () => {
     try {
       await userAPI.deleteAccount();
       await logout();
-      navigate('/');
+      navigate('/auth');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete account');
     }

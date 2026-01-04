@@ -20,6 +20,7 @@ import UserProfilePage from './pages/UserProfilePage';
 import AdminPage from './pages/AdminPage';
 import ErrorPage from './pages/ErrorPage';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import LegalUpdatePopup from './components/LegalUpdatePopup';
@@ -67,7 +68,6 @@ const App: React.FC = () => {
           <Route path="/" element={<Layout><HomePage /></Layout>} />
           <Route path="/explore" element={<Layout><ExplorePage /></Layout>} />
           <Route path="/browse" element={<Layout><BrowsePage /></Layout>} />
-          <Route path="/leaderboard" element={<Layout><LeaderboardPage /></Layout>} />
           <Route path="/auth" element={<Layout><AuthPage /></Layout>} />
           <Route path="/join" element={<Layout><JoinPage /></Layout>} />
           <Route path="/quiz/:id" element={<Layout><QuizDetailPage /></Layout>} />
@@ -76,6 +76,11 @@ const App: React.FC = () => {
           <Route path="/privacy" element={<Layout><PrivacyPolicy /></Layout>} />
           
           {/* Protected routes */}
+          <Route path="/leaderboard" element={
+            <ProtectedRoute>
+              <Layout><LeaderboardPage /></Layout>
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout><DashboardPage /></Layout>

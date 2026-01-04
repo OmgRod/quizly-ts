@@ -4,3 +4,15 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * Decode HTML entities for display
+ * Converts &amp; to &, &lt; to <, etc.
+ */
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}

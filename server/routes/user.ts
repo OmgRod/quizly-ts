@@ -221,7 +221,11 @@ router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
         profilePicture: true,
         profileVisibility: true,
         showQuizStats: true,
-        anonymousMode: true
+        anonymousMode: true,
+        isAdmin: true,
+        isSuspended: true,
+        acceptedTosVersion: true,
+        acceptedPrivacyVersion: true
       }
     });
 

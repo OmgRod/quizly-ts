@@ -6,25 +6,41 @@ import { generateAvatarUrl } from '../utils/avatar';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import { getGenreIcon } from '../utils/genre';
 import { getLevelProgress } from '../utils/leveling';
+import ReportModal from './ReportModal';
+import { useUser } from '../context/UserContext';
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { handleError } = useErrorHandler();
+  const { user: currentUser } = useUser();
   const [user, setUser] = useState<User | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
+  const [globalRank, setGlobalRank] = useState<{ xp: number | null; coins: number | null }>({ xp: null, coins: null });
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   useEffect(() => {
     const loadUserProfile = async () => {
       if (!id) return;
       try {
-        const [userResponse, quizzesResponse] = await Promise.all([
+        const [userResponse, quizzesResponse, xpLeaderboard, coinsLeaderboard] = await Promise.all([
           userAPI.getProfile(id),
-          quizAPI.getAll({ userId: id })
+          quizAPI.getAll({ userId: id }),
+          userAPI.getGlobalLeaderboard({ limit: 100, type: 'xp' }),
+          userAPI.getGlobalLeaderboard({ limit: 100, type: 'coins' })
         ]);
         setUser(userResponse.data.user);
         setQuizzes(quizzesResponse.data.quizzes);
+        
+        // Find user's rank in both leaderboards
+        const xpRankIndex = xpLeaderboard.data.users.findIndex((u: any) => u.id === id);
+        const coinsRankIndex = coinsLeaderboard.data.users.findIndex((u: any) => u.id === id);
+        
+        setGlobalRank({
+          xp: xpRankIndex !== -1 ? xpRankIndex + 1 : null,
+          coins: coinsRankIndex !== -1 ? coinsRankIndex + 1 : null
+        });
       } catch (error: any) {
         console.error('Failed to load user profile:', error);
         // Check if it's a 404 or 403 response - both mean user doesn't exist or is private
@@ -87,7 +103,24 @@ const UserProfile: React.FC = () => {
               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                 <div className="text-[10px] font-black text-slate-500 uppercase mb-1">XP</div>
                 <div className="text-2xl font-black text-white">{(user?.xp || 0).toLocaleString()}</div>
+                {globalRank.xp && (
+                  <div className="text-[9px] font-black text-blue-400 uppercase mt-1">
+                    #{globalRank.xp} Global
+                  </div>
+                )}
               </div>
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Coins</div>
+                <div className="text-2xl font-black text-white">{(user?.coins || 0).toLocaleString()}</div>
+                {globalRank.coins && (
+                  <div className="text-[9px] font-black text-yellow-400 uppercase mt-1">
+                    #{globalRank.coins} Global
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 w-full mb-8">
               {user?.showQuizStats !== false && (
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                   <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Quizzes</div>
@@ -108,6 +141,15 @@ const UserProfile: React.FC = () => {
                 ></div>
               </div>
             </div>
+
+            {currentUser?.id !== user.id && (
+              <button
+                onClick={() => setReportModalOpen(true)}
+                className="w-full mt-8 glass border-white/10 text-slate-400 hover:text-amber-400 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+              >
+                <i className="bi bi-flag-fill"></i> Report User
+              </button>
+            )}
           </div>
         </div>
 
@@ -151,6 +193,14 @@ const UserProfile: React.FC = () => {
             </div>
           )}        </div>
       </div>
+
+      <ReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        targetType="user"
+        targetId={user.id}
+        targetName={user.username}
+      />
     </div>
   );
 };

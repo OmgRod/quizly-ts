@@ -125,9 +125,14 @@ const GamePage: React.FC = () => {
         setIsHost(user?.id === session.hostId);
         setCurrentQuestionIndex(session.currentQuestionIndex || 0);
         
-        // Connect socket
+        // Connect socket with mobile-optimized settings
         const newSocket = io('/', {
-          withCredentials: true
+          withCredentials: true,
+          transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          timeout: 20000 // 20 second timeout for mobile networks
         });
         setSocket(newSocket);
         
@@ -366,7 +371,16 @@ const GamePage: React.FC = () => {
       if (q.pointType === PointType.NONE) {
         accuracy = 0;
       } else if (q.type === QuestionType.PUZZLE) {
-        accuracy = JSON.stringify(ans) === JSON.stringify(q.correctSequence || []) ? 1 : 0;
+        // Normalize both arrays to ensure consistent comparison
+        const userAnswer = Array.isArray(ans) ? ans : [];
+        const correctAnswer = Array.isArray(q.correctSequence) ? q.correctSequence : [];
+        
+        // Check if arrays have same length and same elements in same order
+        if (userAnswer.length !== correctAnswer.length) {
+          accuracy = 0;
+        } else {
+          accuracy = userAnswer.every((item, idx) => String(item).trim() === String(correctAnswer[idx]).trim()) ? 1 : 0;
+        }
       } else if (q.type === QuestionType.INPUT) {
         const userAns = (ans || '').toString().toLowerCase().trim();
         accuracy = (q.correctTexts || []).some(t => t.toLowerCase().trim() === userAns) ? 1 : 0;

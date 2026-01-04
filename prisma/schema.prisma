@@ -27,6 +27,8 @@ model User {
 
   quizzes     Quiz[]
   sessions    GameSession[]
+  reportedByMe Report[] @relation("ReportedBy")
+  reportedAgainstMe Report[] @relation("ReportedUser")
   
   @@map("users")
 }
@@ -46,6 +48,7 @@ model Quiz {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions   Question[]
   sessions    GameSession[]
+  reports     Report[]
   
   @@index([userId])
   @@index([genre])
@@ -101,3 +104,27 @@ model GameSession {
   @@index([quizId])
   @@map("game_sessions")
 }
+
+model Report {
+  id              String   @id @default(cuid())
+  reporterId      String
+  quizId          String?
+  reportedUserId  String?
+  reason          String
+  description     String   @default("")
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  reporter        User     @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  quiz            Quiz?    @relation(fields: [quizId], references: [id], onDelete: SetNull)
+  reportedUser    User?    @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  
+  @@index([reporterId])
+  @@index([quizId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reports")
+}
+

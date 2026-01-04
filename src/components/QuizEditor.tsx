@@ -317,7 +317,7 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                <div className="flex items-center gap-3">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category:</span>
-                 <select value={editedQuiz.genre} onChange={e => setEditedQuiz({...editedQuiz, genre: e.target.value as QuizGenre})} className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-xs font-black uppercase text-white outline-none">
+                 <select value={editedQuiz.genre} onChange={e => setEditedQuiz({...editedQuiz, genre: e.target.value as QuizGenre})} className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-widest text-white outline-none focus:border-blue-500/50 transition-all cursor-pointer">
                    {allGenres.map(g => <option key={g} value={g} className="bg-slate-900">{g}</option>)}
                  </select>
                </div>
@@ -347,7 +347,7 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                     <select 
                       value={q.type} 
                       onChange={e => updateQ(idx, { type: e.target.value as QuestionType })} 
-                      className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase p-1.5 sm:p-2 text-white outline-none hover:bg-white/10 transition-all cursor-pointer w-full sm:w-auto"
+                      className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest p-1.5 sm:p-2 text-white outline-none hover:bg-white/10 focus:border-blue-500/50 transition-all cursor-pointer w-full sm:w-auto"
                     >
                       <option value={QuestionType.MULTIPLE_CHOICE} className="bg-slate-900">MULTIPLE CHOICE</option>
                       <option value={QuestionType.TRUE_FALSE} className="bg-slate-900">TRUE / FALSE</option>
@@ -668,9 +668,12 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                 <select 
                   value={aiAction} 
                   onChange={e => setAiAction(e.target.value as AIAction)}
-                  className="glass w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm text-white border border-white/10 focus:outline-none focus:border-blue-500/50 transition-all"
+                  className="glass w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest text-white border border-white/10 focus:outline-none focus:border-blue-500/50 transition-all cursor-pointer"
                   disabled={loading}
                 >
+                  <option value="add" className="bg-slate-900">Add Questions</option>
+                  <option value="modify" className="bg-slate-900">Modify Questions</option>
+                  <option value="remove" className="bg-slate-900">Remove Questions</option>
                   <option value="add">Add Questions</option>
                   <option value="modify">Modify Questions</option>
                   <option value="remove">Remove Questions</option>

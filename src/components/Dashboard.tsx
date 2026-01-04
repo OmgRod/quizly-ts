@@ -377,13 +377,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
               </div>
               <div className="flex-1">
                 <p className="text-[9px] sm:text-xs font-black uppercase tracking-[0.3em] text-blue-300 mb-1 sm:mb-2">Rename Quiz</p>
-                <h4 className="text-lg sm:text-xl font-black text-white mb-3">"{renamingQuiz.title}"</h4>
+                <h4 className="text-lg sm:text-xl font-black text-white mb-1">"{renamingQuiz.title}"</h4>
                 <input
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all mt-3"
                   placeholder="Enter new title"
                   autoFocus
                 />

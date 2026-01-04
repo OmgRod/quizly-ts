@@ -5,6 +5,7 @@ import { Quiz, User, QuestionType } from '../types';
 import { quizAPI } from '../api';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import { getGenreIcon } from '../utils/genre';
+import ReportModal from './ReportModal';
 
 // Format question type for display
 const formatQuestionType = (type: QuestionType): string => {
@@ -42,6 +43,7 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ onStartQuiz, user }) => {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const toggleQuestion = (index: number) => {
     const newExpanded = new Set(expandedQuestions);
@@ -165,7 +167,24 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ onStartQuiz, user }) => {
             <i className="bi bi-pencil-fill\"></i> Edit Quiz
           </button>
         )}
+
+        {user?.id !== quiz.userId && (
+          <button
+            onClick={() => setReportModalOpen(true)}
+            className="w-full glass border-white/10 text-slate-400 hover:text-amber-400 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-2 sm:gap-3"
+          >
+            <i className="bi bi-flag-fill"></i> Report Quiz
+          </button>
+        )}
       </div>
+
+      <ReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        targetType="quiz"
+        targetId={quiz.id}
+        targetName={quiz.title}
+      />
 
       <div className="mt-6 sm:mt-8 glass p-6 sm:p-8 rounded-2xl sm:rounded-3xl md:rounded-[3rem] border-white/10">
         <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6 uppercase tracking-tight">Questions Preview</h2>

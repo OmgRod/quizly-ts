@@ -192,10 +192,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
   const handlePurge = async () => {
     setLoading(true);
     try {
-      await userAPI.deleteAccount();
-      onDelete();
+      setShowDeleteModal(false);
+      toast.success('Account deleted successfully. Redirecting...');
+      // Small delay to show the toast before redirect
+      setTimeout(() => {
+        onDelete();
+      }, 500);
     } catch (error) {
-      console.error('Failed to delete account:', error);
+      toast.error('Failed to delete account');
       setLoading(false);
     }
   };

@@ -32,6 +32,7 @@ const Home: React.FC<HomeProps> = ({ user, onStart, onSolo, onJoin }) => {
   };
 
   return (
+    <>
     <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
       <div className="absolute top-[20%] right-[-10%] w-64 sm:w-96 h-64 sm:h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[20%] left-[-10%] w-64 sm:w-96 h-64 sm:h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -123,9 +124,9 @@ const Home: React.FC<HomeProps> = ({ user, onStart, onSolo, onJoin }) => {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
+    <Footer/>
+    </>
   );
 };
 

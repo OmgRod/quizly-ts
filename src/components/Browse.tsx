@@ -134,7 +134,7 @@ const Browse: React.FC<BrowseProps> = ({ onStartQuiz }) => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-black uppercase text-white outline-none focus:border-blue-500/50 transition-all"
+                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest text-white outline-none focus:border-blue-500/50 transition-all cursor-pointer"
                 >
                   <option value="newest" className="bg-slate-900">Newest</option>
                   <option value="updated" className="bg-slate-900">Recently Updated</option>
