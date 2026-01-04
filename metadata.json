@@ -1,0 +1,9 @@
+{
+  "name": "Quizly",
+  "description": "A world-class Kahoot clone featuring AI-powered quiz generation, real-time simulated multiplayer, and a vibrant, energetic UI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

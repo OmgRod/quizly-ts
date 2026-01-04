@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+html, body {
+  min-height: 100vh;
+  margin: 0;
+  background-color: #020617; /* slate-950 */
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+  color: #f8fafc;
+}
+
+button,
+a,
+[role="button"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.aurora-gradient {
+  background: radial-gradient(circle at top left, #1e1b4b 0%, #020617 100%);
+  background-attachment: fixed;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.neon-border-blue { 
+  border: 1px solid #38bdf8; 
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); 
+}
+
+.neon-border-purple { 
+  border: 1px solid #a855f7; 
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); 
+}
+
+.neon-border-pink { 
+  border: 1px solid #ec4899; 
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.2); 
+}
+
+.neon-border-emerald { 
+  border: 1px solid #10b981; 
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); 
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s infinite ease-in-out;
+}

@@ -1,0 +1,157 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { User, Quiz, getLevelProgress } from '../types';
+import { quizAPI, userAPI } from '../api';
+import { generateAvatarUrl } from '../utils/avatar';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { getGenreIcon } from '../utils/genre';
+
+const UserProfile: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { handleError } = useErrorHandler();
+  const [user, setUser] = useState<User | null>(null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!id) return;
+      try {
+        const [userResponse, quizzesResponse] = await Promise.all([
+          userAPI.getProfile(id),
+          quizAPI.getAll({ userId: id })
+        ]);
+        setUser(userResponse.data.user);
+        setQuizzes(quizzesResponse.data.quizzes);
+      } catch (error: any) {
+        console.error('Failed to load user profile:', error);
+        // Check if it's a 404 or 403 response - both mean user doesn't exist or is private
+        if (error.response?.status === 404 || error.response?.status === 403) {
+          handleError(411, 'User profile unavailable');
+        } else if (error.response) {
+          // Server responded with an error
+          handleError(error.response.status, error.response.data?.error || 'Failed to load user profile');
+        } else {
+          // Network or other error
+          handleError(500, 'Failed to load user profile');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUserProfile();
+  }, [id, handleError]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass p-8 rounded-3xl">
+          <div className="animate-pulse text-white font-black">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Error handler will redirect to error page
+  }
+
+  const { level, progress } = getLevelProgress(user?.xp || 0);
+
+  return (
+    <div className="max-w-6xl mx-auto px-8 py-12">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-8 text-slate-400 hover:text-white font-black text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
+      >
+        <i className="bi bi-arrow-left"></i> Back
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="glass p-10 rounded-[3rem] border-white/10">
+          <div className="flex flex-col items-center text-center">
+            <img 
+              src={user?.profilePicture || generateAvatarUrl(user?.username || 'User')}
+              alt={user?.username}
+              className="w-32 h-32 rounded-[3rem] shadow-2xl mb-6 object-cover"
+            />
+            <h1 className="text-4xl font-black text-white mb-2">{user?.username || 'User'}</h1>
+            
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20 mb-8">
+              Level {level}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 w-full mb-8">
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div className="text-[10px] font-black text-slate-500 uppercase mb-1">XP</div>
+                <div className="text-2xl font-black text-white">{(user?.xp || 0).toLocaleString()}</div>
+              </div>
+              {user?.showQuizStats !== false && (
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Quizzes</div>
+                  <div className="text-2xl font-black text-white">{quizzes.length}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="w-full text-left space-y-4">
+              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
+                <span>Progress</span>
+                <span className="text-blue-400">{progress.toFixed(1)}%</span>
+              </div>
+              <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-1000" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          {user?.showQuizStats !== false ? (
+            <>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-6">Created Quizzes</h2>
+              {quizzes.length === 0 ? (
+                <div className="glass p-20 rounded-[3rem] border-dashed border-white/10 text-center space-y-4 opacity-30">
+                  <i className="bi bi-journal-x text-6xl block"></i>
+                  <p className="font-bold text-xl uppercase tracking-widest">No Quizzes Yet</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {quizzes.map(q => (
+                <div
+                  key={q.id}
+                  onClick={() => navigate(`/quiz/${q.id}`)}
+                  className="glass p-6 rounded-2xl border-white/5 hover:border-blue-500/30 transition-all cursor-pointer group"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                      <i className={`bi ${getGenreIcon(q.genre)} text-xl`}></i>
+                    </div>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{q.playCount}</span>
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2 line-clamp-2">{q.title}</h3>
+                  <p className="text-slate-500 text-xs font-medium line-clamp-2 mb-4">{q.description}</p>
+                  <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                    {q.questions.length} Questions
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}            </>
+          ) : (
+            <div className="glass p-20 rounded-[3rem] border-white/10 text-center space-y-4">
+              <i className="bi bi-eye-slash text-6xl text-slate-600 block"></i>
+              <p className="font-bold text-xl uppercase tracking-widest text-slate-500">Quiz Stats Hidden</p>
+              <p className="text-slate-600 text-sm">This user has chosen to keep their quiz creations private</p>
+            </div>
+          )}        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserProfile;

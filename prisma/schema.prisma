@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  password    String
+  totalPoints Int      @default(0)
+  xp          Int      @default(0)
+  coins       Int      @default(100)
+  profilePicture String?
+  profileVisibility Boolean @default(true)
+  showQuizStats Boolean @default(true)
+  anonymousMode Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quizzes     Quiz[]
+  sessions    GameSession[]
+  
+  @@map("users")
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  userId      String
+  authorName  String
+  title       String
+  genre       String
+  description String   @default("")
+  visibility  String   @default("PUBLIC")
+  playCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  sessions    GameSession[]
+  
+  @@index([userId])
+  @@index([genre])
+  @@map("quizzes")
+}
+
+model Question {
+  id              String   @id @default(cuid())
+  quizId          String
+  type            String
+  pointType       String   @default("NORMAL")
+  text            String
+  options         String   @default("[]")
+  correctIndices  String?
+  correctTexts    String?
+  correctSequence String?
+  correctValue    Float?
+  minValue        Float?
+  maxValue        Float?
+  stepValue       Float?
+  imageUrl        String?
+  audioUrl        String?
+  correctRegions  String?
+  targetLatLng    String?
+  isCaseSensitive Boolean  @default(false)
+  timeLimit       Int      @default(20)
+  orderIndex      Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  quiz            Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  @@index([quizId])
+  @@map("questions")
+}
+
+model GameSession {
+  id          String   @id @default(cuid())
+  pin         String   @unique
+  quizId      String
+  hostId      String
+  players     String   @default("[]")
+  currentQuestionIndex Int @default(0)
+  state       String   @default("LOBBY")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastActiveAt DateTime @default(now())
+
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  host        User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  
+  @@index([pin])
+  @@index([quizId])
+  @@map("game_sessions")
+}
