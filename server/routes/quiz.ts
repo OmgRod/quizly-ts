@@ -3,6 +3,14 @@ import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
+import rateLimit from 'express-rate-limit';
+
+const quizDeleteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 delete requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Helper to serialize JSON fields to strings for SQLite
 const serializeQuestion = (q: any, index: number) => ({
@@ -557,7 +565,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 });
 
 // Delete quiz (requires auth)
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', quizDeleteLimiter, requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.session.userId!;
