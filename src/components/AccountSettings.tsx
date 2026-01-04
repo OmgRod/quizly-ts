@@ -28,41 +28,30 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
   const [anonymousMode, setAnonymousMode] = useState(user.anonymousMode ?? false);
   const [bulkUploading, setBulkUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [pendingUpdate, setPendingUpdate] = useState<any>(null);
 
-  const hasBigChanges = () => {
-    // Check if username changed
-    const usernameChanged = username !== user.username;
-    // Check if password is being changed
-    const passwordChanged = password && password === confirmNewPassword;
-    // Check if profile picture changed
-    const picturChanged = profilePicture !== (user.profilePicture || generateAvatarUrl(user.username));
-    
-    return usernameChanged || passwordChanged || picturChanged;
-  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
     setSuccess("");
     
     // Validate username format before sending to server
     if (username && !/^[a-zA-Z0-9]{3,32}$/.test(username)) {
       setError("Username must be alphanumeric only and between 3-32 characters");
+      setLoading(false);
       return;
     }
 
     // Validate password confirmation if password is being changed
     if (password && password !== confirmNewPassword) {
       setError("Passwords do not match");
+      setLoading(false);
       return;
     }
     
-    // If big changes detected, show password confirmation modal
-    if (hasBigChanges()) {
-      setPendingUpdate({ 
+    try {
+      await onUpdate({ 
         username, 
         password,
         profilePicture,
@@ -70,29 +59,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
         showQuizStats,
         anonymousMode
       });
-      setShowPasswordConfirm(true);
-      return;
-    }
-    
-    // If only minor changes (privacy settings), update directly
-    await performUpdate({ 
-      username, 
-      password,
-      profilePicture,
-      profileVisibility,
-      showQuizStats,
-      anonymousMode
-    });
-  };
-
-  const performUpdate = async (updateData: any) => {
-    setLoading(true);
-    try {
-      await onUpdate(updateData);
       setSuccess("Account updated successfully.");
-      setShowPasswordConfirm(false);
-      setConfirmPassword("");
-      setPendingUpdate(null);
+      setPassword("");
+      setConfirmNewPassword("");
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to update account.");
     } finally {
@@ -100,20 +69,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     }
   };
 
-  const handlePasswordConfirm = async () => {
-    if (!confirmPassword) {
-      setError("Please enter your password to confirm");
-      return;
-    }
-    
-    if (pendingUpdate) {
-      // Send password confirmation with the update
-      await performUpdate({
-        ...pendingUpdate,
-        currentPassword: confirmPassword
-      });
-    }
-  };
 
   const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -548,55 +503,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
           </button>
         </div>
       </div>
-
-      {/* Password Confirmation Modal */}
-      {showPasswordConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300"></div>
-          <div className="glass p-12 rounded-[3.5rem] border-blue-500/20 w-full max-w-md relative z-10 animate-in zoom-in duration-300 space-y-8">
-            <div className="w-24 h-24 bg-blue-500/10 rounded-[2rem] flex items-center justify-center text-blue-500 text-5xl mx-auto">
-              <i className="bi bi-shield-check"></i>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-3xl font-black text-white uppercase tracking-tighter leading-tight">Confirm Password</h3>
-              <p className="text-slate-500 text-sm font-medium">This is a sensitive change. Please enter your password to confirm.</p>
-            </div>
-            <div className="space-y-3">
-              <input 
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePasswordConfirm()}
-                placeholder="Enter your password"
-                className="w-full bg-white/5 border border-white/5 p-4 rounded-2xl text-white placeholder-slate-500 font-bold focus:outline-none focus:border-blue-500/50 transition-all"
-                disabled={loading}
-              />
-            </div>
-            {error && <div className="text-rose-500 text-sm font-medium text-center">{error}</div>}
-            <div className="grid grid-cols-2 gap-4">
-              <button 
-                onClick={handlePasswordConfirm}
-                disabled={loading || !confirmPassword}
-                className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95"
-              >
-                {loading ? "Confirming..." : "Confirm"}
-              </button>
-              <button 
-                onClick={() => {
-                  setShowPasswordConfirm(false);
-                  setConfirmPassword("");
-                  setPendingUpdate(null);
-                  setError("");
-                }}
-                disabled={loading}
-                className="bg-white/5 text-slate-400 font-black py-4 rounded-2xl text-xs uppercase tracking-widest hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Confirmation Modal */}
       {showDeleteModal && (
