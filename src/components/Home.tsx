@@ -101,6 +101,7 @@ const Home: React.FC<HomeProps> = ({ user, onStart, onSolo, onJoin }) => {
               placeholder="Your Nickname" 
               value={name}
               onChange={(e) => setName(e.target.value)}
+              maxLength={30}
               className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-white font-bold text-xl focus:outline-none focus:border-blue-500 transition-colors"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleNicknameSubmit()}

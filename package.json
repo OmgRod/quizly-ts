@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "serve": "serve -s dist -l 5173"
   },
   "dependencies": {
     "@fontsource/plus-jakarta-sans": "^5.2.8",

@@ -1,10 +1,18 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { quizAPI } from '../api';
 import { Quiz, QuizGenre } from '../types';
 import ProgressBar from './ProgressBar';
 import { parseQuizFile } from '../utils/quizImportExport';
+
+// Character limits
+export const LIMITS = {
+  QUIZ_TITLE: 100,
+  QUIZ_DESCRIPTION: 500,
+  QUESTION_TEXT: 300,
+  ANSWER_OPTION: 150,
+  CORRECT_ANSWER: 150
+};
 
 interface QuizCreatorProps {
   onQuizCreated: (quiz: Quiz) => void;
@@ -208,6 +216,7 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onQuizCreated, onBack, isSolo
                    value={topic}
                    onChange={(e) => setTopic(e.target.value)}
                    disabled={loading}
+                   maxLength={100}
                    className="w-full bg-white/5 border border-white/5 p-6 rounded-2xl text-xl font-bold focus:outline-none focus:border-blue-500/50 transition-all placeholder:opacity-20"
                    autoFocus
                  />

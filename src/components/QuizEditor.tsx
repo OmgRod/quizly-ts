@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Quiz, Question, QuestionType, PointType, QuizGenre } from '../types';
 import { quizAPI } from '../api';
 import ProgressBar from './ProgressBar';
+import { LIMITS } from './QuizCreator';
 
 const allGenres: QuizGenre[] = [
   'General', 'Science', 'History', 'Technology', 'Pop Culture', 
@@ -297,14 +298,22 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
               onChange={e => setEditedQuiz({...editedQuiz, title: e.target.value})} 
               className="bg-transparent border-none text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white w-full focus:outline-none tracking-tighter" 
               placeholder="Quiz Title..." 
+              maxLength={LIMITS.QUIZ_TITLE}
             />
+            <div className="text-xs text-slate-400">
+              {editedQuiz.title.length}/{LIMITS.QUIZ_TITLE} characters
+            </div>
             <textarea
               value={editedQuiz.description || ''}
               onChange={e => setEditedQuiz({...editedQuiz, description: e.target.value})}
               className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-300 w-full focus:outline-none focus:border-blue-500/50 transition-colors resize-none"
               placeholder="Add a description for your quiz..."
               rows={2}
+              maxLength={LIMITS.QUIZ_DESCRIPTION}
             />
+            <div className="text-xs text-slate-400">
+              {(editedQuiz.description || '').length}/{LIMITS.QUIZ_DESCRIPTION} characters
+            </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                <div className="flex items-center gap-3">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category:</span>
@@ -353,7 +362,10 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                   <button onClick={() => setEditedQuiz({...editedQuiz, questions: (editedQuiz.questions || []).filter((_, i) => i !== idx)})} className="text-rose-500/30 hover:text-rose-500 transition-colors"><i className="bi bi-trash3-fill"></i></button>
                 </div>
 
-                <input value={q.text || ""} onChange={e => updateQ(idx, { text: e.target.value })} className="bg-transparent border-none text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white w-full focus:outline-none placeholder:opacity-10" placeholder="Question Text..." />
+                <input value={q.text || ""} onChange={e => updateQ(idx, { text: e.target.value })} className="bg-transparent border-none text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white w-full focus:outline-none placeholder:opacity-10" placeholder="Question Text..." maxLength={LIMITS.QUESTION_TEXT} />
+                <div className="text-xs text-slate-400">
+                  {(q.text || '').length}/{LIMITS.QUESTION_TEXT} characters
+                </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                   <div className="space-y-3">
@@ -443,7 +455,9 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                                   }}
                                   className="flex-1 bg-white/5 border border-white/5 p-4 rounded-2xl text-white text-sm font-bold focus:border-indigo-500 outline-none" 
                                   placeholder="Correct answer text..."
+                                  maxLength={LIMITS.CORRECT_ANSWER}
                                 />
+                                <span className="text-xs text-slate-400 whitespace-nowrap">{txt.length}/{LIMITS.CORRECT_ANSWER}</span>
                              </div>
                           ))}
                        </div>
@@ -497,6 +511,7 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                                          updateQ(idx, { options: newOpts });
                                        }}
                                        className="bg-transparent border-none text-white text-sm font-bold flex-1 outline-none" 
+                                       maxLength={LIMITS.ANSWER_OPTION}
                                      />
                                      {(q.options || []).length > 2 && (
                                        <button onClick={() => removeOption(idx, oIdx)} className="text-rose-500/30 hover:text-rose-500 transition-colors"><i className="bi bi-x-lg"></i></button>
@@ -549,6 +564,7 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                                          updateQ(idx, { options: newOpts });
                                        }}
                                        className="bg-transparent border-none text-white text-sm font-bold flex-1 outline-none" 
+                                       maxLength={LIMITS.ANSWER_OPTION}
                                      />
                                      {(q.options || []).length > 2 && (
                                        <button onClick={() => removeOption(idx, oIdx)} className="text-rose-500/30 hover:text-rose-500 transition-colors"><i className="bi bi-x-lg"></i></button>
@@ -603,6 +619,7 @@ const QuizEditor: React.FC<{ quiz: Quiz; onSave: (q: Quiz) => void; onStart: (q:
                                     }}
                                     className="bg-transparent border-none text-white text-sm font-bold flex-1 outline-none" 
                                     readOnly={q.type === QuestionType.TRUE_FALSE}
+                                    maxLength={LIMITS.ANSWER_OPTION}
                                   />
                                   {(q.type === QuestionType.MULTIPLE_CHOICE || q.type === QuestionType.POLL) && (q.options || []).length > 2 && (
                                     <button onClick={() => removeOption(idx, oIdx)} className="text-rose-500/30 hover:text-rose-500 transition-colors"><i className="bi bi-x-lg"></i></button>

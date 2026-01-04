@@ -59,6 +59,7 @@ const Auth: React.FC<AuthProps> = ({ onAuth, onBack, error: externalError }) => 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
+              maxLength={30}
               className="w-full bg-white/5 border border-white/5 p-5 pl-14 rounded-2xl text-white font-bold text-lg focus:outline-none focus:border-blue-500/50 transition-all"
               autoFocus
             />
@@ -72,6 +73,7 @@ const Auth: React.FC<AuthProps> = ({ onAuth, onBack, error: externalError }) => 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={isRegister ? "new-password" : "current-password"}
+              maxLength={100}
               className="w-full bg-white/5 border border-white/5 p-5 pl-14 rounded-2xl text-white font-bold text-lg focus:outline-none focus:border-blue-500/50 transition-all"
             />
           </div>

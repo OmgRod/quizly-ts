@@ -3,7 +3,8 @@ import { useUser } from '../context/UserContext';
 import api from '../api';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { LIMITS } from './QuizCreator';
 
 interface Quiz {
   id: string;
@@ -39,6 +40,7 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [viewingQuizId, setViewingQuizId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -279,6 +281,7 @@ export default function AdminPanel() {
               value={quizSearchInput}
               onChange={(e) => setQuizSearchInput(e.target.value)}
               onKeyPress={handleQuizSearch}
+              maxLength={100}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -294,10 +297,9 @@ export default function AdminPanel() {
               <div className="space-y-4 mb-6">
                 {quizzes.map(quiz => (
                   <Card key={quiz.id} className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1">{quiz.title}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{quiz.description || 'No description'}</p>
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg mb-1 truncate">{quiz.title}</h3>
                         <div className="flex gap-4 text-sm text-gray-500 flex-wrap">
                           <span>By: {quiz.user.username}</span>
                           <span>Genre: {quiz.genre}</span>
@@ -306,7 +308,15 @@ export default function AdminPanel() {
                           <span>Plays: {quiz.playCount}</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-nowrap">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => window.open(`/quiz/${quiz.id}`, '_blank')}
+                          title="View Quiz"
+                        >
+                          <Eye size={16} />
+                        </Button>
                         <Button
                           variant="secondary"
                           size="sm"
@@ -331,15 +341,9 @@ export default function AdminPanel() {
                           type="text"
                           placeholder="Title"
                           defaultValue={quiz.title}
+                          maxLength={LIMITS.QUIZ_TITLE}
                           className="w-full px-3 py-2 border rounded-lg text-sm"
                           id={`quiz-title-${quiz.id}`}
-                        />
-                        <textarea
-                          placeholder="Description"
-                          defaultValue={quiz.description}
-                          className="w-full px-3 py-2 border rounded-lg text-sm"
-                          rows={3}
-                          id={`quiz-desc-${quiz.id}`}
                         />
                         <select
                           defaultValue={quiz.visibility}
@@ -405,6 +409,7 @@ export default function AdminPanel() {
               value={userSearchInput}
               onChange={(e) => setUserSearchInput(e.target.value)}
               onKeyPress={handleUserSearch}
+              maxLength={50}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -413,7 +418,7 @@ export default function AdminPanel() {
             <div className="text-center py-8 text-gray-500">Loading users...</div>
           ) : users.length === 0 ? (
             <Card className="text-center py-8 text-gray-500">
-              {userSearch ? 'No users match your search' : 'No users found'}
+              {userSearchTerm ? 'No users match your search' : 'No users found'}
             </Card>
           ) : (
             <>
@@ -478,8 +483,8 @@ export default function AdminPanel() {
                         <div className="flex gap-2">
                           <input
                             type="number"
-                            defaultValue={u.coins}
-                            className="flex-1 px-3 py-2 border rounded-lg"
+                            defaultValue={u.coins}                          min="0"
+                          max="999999"                            className="flex-1 px-3 py-2 border rounded-lg"
                             id={`user-coins-${u.id}`}
                           />
                           <Button

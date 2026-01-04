@@ -52,14 +52,82 @@ const deserializeQuestion = (q: any) => ({
 
 const router = Router();
 
+// Character limits
+const LIMITS = {
+  QUIZ_TITLE: 100,
+  QUIZ_DESCRIPTION: 500,
+  QUESTION_TEXT: 300,
+  ANSWER_OPTION: 150,
+  CORRECT_ANSWER: 150
+};
+
 const normalizeVisibility = (v: any): 'PUBLIC' | 'PRIVATE' | 'DRAFT' => {
   if (v === 'PRIVATE') return 'PRIVATE';
   if (v === 'DRAFT') return 'DRAFT';
   return 'PUBLIC';
 };
 
+// Validate character limits
+const validateCharacterLimits = (quiz: any): string | null => {
+  if (quiz?.title) {
+    if (quiz.title.length > LIMITS.QUIZ_TITLE) {
+      return `Quiz title exceeds ${LIMITS.QUIZ_TITLE} character limit (${quiz.title.length} characters)`;
+    }
+  }
+
+  if (quiz?.description) {
+    if (quiz.description.length > LIMITS.QUIZ_DESCRIPTION) {
+      return `Quiz description exceeds ${LIMITS.QUIZ_DESCRIPTION} character limit (${quiz.description.length} characters)`;
+    }
+  }
+
+  if (Array.isArray(quiz?.questions)) {
+    for (let i = 0; i < quiz.questions.length; i++) {
+      const q = quiz.questions[i];
+      const label = `Question ${i + 1}`;
+
+      if (q?.text && q.text.length > LIMITS.QUESTION_TEXT) {
+        return `${label} text exceeds ${LIMITS.QUESTION_TEXT} character limit (${q.text.length} characters)`;
+      }
+
+      if (Array.isArray(q?.options)) {
+        for (let j = 0; j < q.options.length; j++) {
+          const option = q.options[j];
+          if (option && String(option).length > LIMITS.ANSWER_OPTION) {
+            return `${label} option ${j + 1} exceeds ${LIMITS.ANSWER_OPTION} character limit (${String(option).length} characters)`;
+          }
+        }
+      }
+
+      if (Array.isArray(q?.correctTexts)) {
+        for (let j = 0; j < q.correctTexts.length; j++) {
+          const answer = q.correctTexts[j];
+          if (answer && String(answer).length > LIMITS.CORRECT_ANSWER) {
+            return `${label} correct answer ${j + 1} exceeds ${LIMITS.CORRECT_ANSWER} character limit (${String(answer).length} characters)`;
+          }
+        }
+      }
+
+      if (Array.isArray(q?.correctSequence)) {
+        for (let j = 0; j < q.correctSequence.length; j++) {
+          const step = q.correctSequence[j];
+          if (step && String(step).length > LIMITS.ANSWER_OPTION) {
+            return `${label} sequence step ${j + 1} exceeds ${LIMITS.ANSWER_OPTION} character limit (${String(step).length} characters)`;
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
 // Basic playability validation to prevent saving unplayable quizzes
 const validatePlayableQuiz = (quiz: any): string | null => {
+  // Check character limits first
+  const limitError = validateCharacterLimits(quiz);
+  if (limitError) return limitError;
+
   if (!quiz?.title || !quiz.title.trim()) {
     return 'Quiz title is required';
   }

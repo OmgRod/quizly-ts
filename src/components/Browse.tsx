@@ -152,6 +152,7 @@ const Browse: React.FC<BrowseProps> = ({ onStartQuiz }) => {
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
                       onKeyPress={handleKeyPress}
+                      maxLength={100}
                       className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-white font-bold focus:outline-none focus:border-blue-500/50 transition-all placeholder:opacity-30"
                     />
                   </div>
