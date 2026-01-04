@@ -17,6 +17,7 @@ interface AccountSettingsProps {
 const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDelete, onBack, onLogout }) => {
   const [username, setUsername] = useState(user.username);
   const [password, setPassword] = useState(user.password || "");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [profilePicture, setProfilePicture] = useState(user.profilePicture || generateAvatarUrl(user.username));
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -35,7 +36,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     // Check if username changed
     const usernameChanged = username !== user.username;
     // Check if password is being changed
-    const passwordChanged = password && password !== (user.password || "");
+    const passwordChanged = password && password === confirmNewPassword;
     // Check if profile picture changed
     const picturChanged = profilePicture !== (user.profilePicture || generateAvatarUrl(user.username));
     
@@ -50,6 +51,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     // Validate username format before sending to server
     if (username && !/^[a-zA-Z0-9]{3,32}$/.test(username)) {
       setError("Username must be alphanumeric only and between 3-32 characters");
+      return;
+    }
+
+    // Validate password confirmation if password is being changed
+    if (password && password !== confirmNewPassword) {
+      setError("Passwords do not match");
       return;
     }
     
@@ -306,6 +313,33 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
                 />
               </div>
             </div>
+
+            {password && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirm Password</label>
+                <div className="relative group">
+                  <i className="bi bi-check-circle absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400"></i>
+                  <input 
+                    type="password" 
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    className={`w-full bg-white/5 border p-5 pl-14 rounded-2xl text-white font-bold text-lg focus:outline-none transition-all ${
+                      confirmNewPassword && password === confirmNewPassword 
+                        ? 'border-emerald-500/50 focus:border-emerald-500/50' 
+                        : confirmNewPassword && password !== confirmNewPassword
+                        ? 'border-rose-500/50 focus:border-rose-500/50'
+                        : 'border-white/5 focus:border-blue-500/50'
+                    }`}
+                  />
+                </div>
+                {confirmNewPassword && password !== confirmNewPassword && (
+                  <p className="text-rose-500 text-xs font-medium">Passwords do not match</p>
+                )}
+                {confirmNewPassword && password === confirmNewPassword && (
+                  <p className="text-emerald-500 text-xs font-medium">Passwords match</p>
+                )}
+              </div>
+            )}
 
             {error && <p className="text-rose-500 text-xs font-black uppercase text-center animate-pulse">{error}</p>}
             {success && <p className="text-emerald-500 text-xs font-black uppercase text-center">{success}</p>}
