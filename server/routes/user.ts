@@ -3,8 +3,16 @@ import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, isValidImageUrl, isValidUsername } from '../middleware/inputValidation';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+const profileUpdateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // limit each IP to 30 profile update requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Get global leaderboard
 router.get('/leaderboard/global', async (req, res) => {
@@ -107,7 +115,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', requireAuth, async (req, res) => {
+router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
   try {
     const { username, currentPassword, newPassword, xp, coins, totalPoints, profilePicture, profileVisibility, showQuizStats, anonymousMode } = req.body;
     const userId = req.userId!;
