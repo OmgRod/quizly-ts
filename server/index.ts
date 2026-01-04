@@ -77,7 +77,7 @@ app.use(session({
 const csrfProtection = csrf({ cookie: false });
 
 // GET endpoint to fetch CSRF token (no CSRF protection needed for GET)
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
+app.get('/api/csrf-token', csrfProtection as any, (req, res) => {
   try {
     res.json({ csrfToken: (req as any).csrfToken() });
   } catch (error) {
@@ -93,7 +93,7 @@ app.use((req, res, next) => {
     return next();
   }
   // Apply CSRF protection to POST, PUT, DELETE, PATCH
-  csrfProtection(req, res, next);
+  (csrfProtection as any)(req, res, next);
 });
 
 // Serve static files from dist in production
@@ -127,7 +127,7 @@ if (process.env.NODE_ENV === 'production') {
 // Setup Socket.IO
 setupSocketHandlers(io);
 
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Clear all game sessions on startup
 async function initializeServer() {

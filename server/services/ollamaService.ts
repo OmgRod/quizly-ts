@@ -68,11 +68,10 @@ async function callOllama(prompt: string, systemPrompt?: string): Promise<string
       options: {
         temperature: 0.1,
         top_p: 0.9
-      },
-      grammar: QUIZ_GRAMMAR
-    });
+      }
+    } as any);
 
-    return response.response;
+    return (response as any).response;
   } catch (error: any) {
     if (error.message?.includes('ECONNREFUSED') || error.code === 'ECONNREFUSED') {
       throw new Error(`Cannot connect to Ollama at ${OLLAMA_BASE_URL}. Make sure Ollama is running.`);
@@ -117,7 +116,7 @@ function validateQuizStrict(q: any): void {
       if (question.type === QuestionType.TRUE_FALSE) {
         // Enforce canonical True/False options and keep indices within [0,1]
         question.options = ["True", "False"];
-        question.correctIndices = question.correctIndices.map(ci => (ci === 1 ? 1 : 0));
+        question.correctIndices = question.correctIndices.map((ci: number) => (ci === 1 ? 1 : 0));
       }
     }
 

@@ -541,7 +541,7 @@ router.post('/', requireAuth, async (req, res) => {
         authorName: user.username,
         userId,
         questions: {
-          create: questions.map(q => serializeQuestion({
+          create: questions.map((q: any) => serializeQuestion({
             ...q,
             text: sanitizeText(q.text),
             options: (q.options || []).map((opt: any) => sanitizeText(opt)),
@@ -611,7 +611,7 @@ router.put('/:id', requireAuth, async (req, res) => {
         description: sanitizeText(description),
         visibility: normalizeVisibility(visibility || existingQuiz.visibility),
         questions: {
-          create: questions.map(q => serializeQuestion({
+          create: questions.map((q: any) => serializeQuestion({
             ...q,
             text: sanitizeText(q.text),
             options: (q.options || []).map((opt: any) => sanitizeText(opt)),
