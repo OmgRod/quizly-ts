@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../api';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -52,7 +52,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         (payload as any).reportedUserId = targetId;
       }
 
-      await axios.post('/api/reports', payload);
+      await api.post('/reports', payload);
 
       toast.success('Report submitted successfully. Thank you!');
       setReason('');
