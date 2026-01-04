@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
-import { isValidUUID } from '../middleware/inputValidation';
+import { isValidUUID, isValidImageUrl, isValidUsername } from '../middleware/inputValidation';
 
 const router = Router();
 
@@ -137,6 +137,11 @@ router.put('/profile', requireAuth, async (req, res) => {
 
     // Update username
     if (username && username !== user.username) {
+      // Validate username format (alphanumeric only, 3-32 chars)
+      if (!isValidUsername(username)) {
+        return res.status(400).json({ error: 'Username must be alphanumeric only and between 3-32 characters' });
+      }
+
       // Check if username is taken
       const existingUser = await prisma.user.findUnique({
         where: { username }
@@ -174,6 +179,9 @@ router.put('/profile', requireAuth, async (req, res) => {
 
     // Update profile picture
     if (profilePicture) {
+      if (!isValidImageUrl(profilePicture)) {
+        return res.status(400).json({ error: 'Invalid image URL format' });
+      }
       updateData.profilePicture = profilePicture;
       console.log('Saving profile picture, length:', profilePicture.length);
     }

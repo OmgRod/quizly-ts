@@ -99,3 +99,45 @@ export const isValidUsername = (username: string): boolean => {
   const usernameRegex = /^[a-zA-Z0-9]{3,32}$/;
   return usernameRegex.test(username);
 };
+
+/**
+ * Validate data URL or safe URL for images
+ */
+export const isValidImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  
+  // Allow data URLs (base64 images only, with reasonable length limit)
+  if (url.startsWith('data:')) {
+    // Only allow image data URLs, limit to 5MB of base64
+    return /^data:image\/(jpeg|jpg|png|gif|webp);base64,[A-Za-z0-9+/=]{0,6000000}$/.test(url);
+  }
+  
+  // Allow HTTPS URLs with image extensions
+  try {
+    const urlObj = new URL(url);
+    // Only allow HTTPS
+    if (urlObj.protocol !== 'https:') return false;
+    
+    // Only allow image file extensions
+    const pathname = urlObj.pathname.toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(pathname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Sanitize text content to prevent HTML/JS injection
+ * Escapes special HTML characters
+ */
+export const sanitizeText = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+};
+

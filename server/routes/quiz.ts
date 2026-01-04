@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
-import { isValidUUID } from '../middleware/inputValidation';
+import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
 
 // Helper to serialize JSON fields to strings for SQLite
@@ -453,14 +453,19 @@ router.post('/', requireAuth, async (req, res) => {
 
     const quiz = await prisma.quiz.create({
       data: {
-        title,
+        title: sanitizeText(title),
         genre,
-        description: description || '',
+        description: sanitizeText(description || ''),
         visibility: normalizeVisibility(visibility),
         authorName: user.username,
         userId,
         questions: {
-          create: questions.map(serializeQuestion)
+          create: questions.map(q => serializeQuestion({
+            ...q,
+            text: sanitizeText(q.text),
+            options: (q.options || []).map((opt: any) => sanitizeText(opt)),
+            correctTexts: (q.correctTexts || []).map((text: any) => sanitizeText(text))
+          }, q.__index || 0))
         }
       },
       include: {
@@ -520,12 +525,17 @@ router.put('/:id', requireAuth, async (req, res) => {
     const quiz = await prisma.quiz.update({
       where: { id },
       data: {
-        title,
+        title: sanitizeText(title),
         genre,
-        description,
+        description: sanitizeText(description),
         visibility: normalizeVisibility(visibility || existingQuiz.visibility),
         questions: {
-          create: questions.map(serializeQuestion)
+          create: questions.map(q => serializeQuestion({
+            ...q,
+            text: sanitizeText(q.text),
+            options: (q.options || []).map((opt: any) => sanitizeText(opt)),
+            correctTexts: (q.correctTexts || []).map((text: any) => sanitizeText(text))
+          }, q.__index || 0))
         }
       },
       include: {

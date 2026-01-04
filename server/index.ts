@@ -28,6 +28,26 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Security headers - Prevent XSS attacks
+app.use((req, res, next) => {
+  // Content Security Policy
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;");
+  
+  // Prevent MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // Enable XSS protection in older browsers
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Remove server information
+  res.removeHeader('X-Powered-By');
+  
+  next();
+});
+
 // Input validation and sanitization middleware
 app.use(validateInput);
 app.use(validatePagination);
