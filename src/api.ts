@@ -155,3 +155,5 @@ export const userAPI = {
   getGlobalLeaderboard: (params?: { limit?: number; offset?: number; type?: 'xp' | 'coins' | 'points' }) => 
     api.get('/user/leaderboard/global', { params })
 };
+
+export default api;

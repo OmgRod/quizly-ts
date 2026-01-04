@@ -5,27 +5,48 @@ import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
-// Get all quizzes (admin only)
+// Get all quizzes (admin only) with pagination and search
 router.get('/quizzes', requireAdmin, async (req, res) => {
   try {
-    const quizzes = await prisma.quiz.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true
+    const page = parseInt(req.query.page as string) || 1;
+    const search = (req.query.search as string) || '';
+    const ITEMS_PER_PAGE = 10;
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+
+    const whereCondition = search
+      ? {
+          OR: [
+            { title: { contains: search } },
+            { description: { contains: search } },
+            { user: { username: { contains: search } } }
+          ]
+        }
+      : {};
+
+    const [quizzes, total] = await Promise.all([
+      prisma.quiz.findMany({
+        where: whereCondition,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true
+            }
+          },
+          questions: {
+            select: {
+              id: true
+            }
           }
         },
-        questions: {
-          select: {
-            id: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: ITEMS_PER_PAGE
+      }),
+      prisma.quiz.count({ where: whereCondition })
+    ]);
 
-    res.json({ quizzes });
+    res.json({ quizzes, total, page, pageSize: ITEMS_PER_PAGE });
   } catch (error) {
     console.error('Get quizzes error:', error);
     res.status(500).json({ error: 'Failed to get quizzes' });
@@ -117,25 +138,40 @@ router.delete('/quizzes/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Get all users (admin only)
+// Get all users (admin only) with pagination and search
 router.get('/users', requireAdmin, async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        totalPoints: true,
-        xp: true,
-        coins: true,
-        isAdmin: true,
-        isSuspended: true,
-        createdAt: true,
-        updatedAt: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const page = parseInt(req.query.page as string) || 1;
+    const search = (req.query.search as string) || '';
+    const ITEMS_PER_PAGE = 10;
+    const skip = (page - 1) * ITEMS_PER_PAGE;
 
-    res.json({ users });
+    const whereCondition = search
+      ? { username: { contains: search } }
+      : {};
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: whereCondition,
+        select: {
+          id: true,
+          username: true,
+          totalPoints: true,
+          xp: true,
+          coins: true,
+          isAdmin: true,
+          isSuspended: true,
+          createdAt: true,
+          updatedAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: ITEMS_PER_PAGE
+      }),
+      prisma.user.count({ where: whereCondition })
+    ]);
+
+    res.json({ users, total, page, pageSize: ITEMS_PER_PAGE });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });

@@ -116,6 +116,14 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
               <i className="bi bi-trophy mr-2"></i> Leaderboard
             </Link>
           )}
+          {user?.isAdmin && (
+            <Link 
+              to="/admin"
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${location.pathname === '/admin' ? 'text-white bg-purple-600/30 border border-purple-500' : 'text-purple-400 hover:text-white'}`}
+            >
+              <i className="bi bi-shield-lock mr-2"></i> Admin
+            </Link>
+          )}
         </div>
       </div>
 

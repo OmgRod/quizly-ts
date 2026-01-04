@@ -3,7 +3,7 @@ import { useUser } from '../context/UserContext';
 import api from '../api';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff } from 'lucide-react';
+import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Quiz {
   id: string;
@@ -29,6 +29,8 @@ interface User {
   sessionCount?: number;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function AdminPanel() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState<'quizzes' | 'users'>('quizzes');
@@ -39,13 +41,26 @@ export default function AdminPanel() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Pagination & Search
+  const [quizPage, setQuizPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const [quizSearchInput, setQuizSearchInput] = useState('');
+  const [quizSearchTerm, setQuizSearchTerm] = useState('');
+  const [userSearchInput, setUserSearchInput] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
 
-  // Fetch quizzes
-  const fetchQuizzes = async () => {
+  // Fetch quizzes with pagination
+  const fetchQuizzes = async (page: number = 1, search: string = '') => {
     setLoading(true);
     try {
-      const res = await api.get('/admin/quizzes');
+      const res = await api.get('/admin/quizzes', {
+        params: { page, search }
+      });
       setQuizzes(res.data.quizzes);
+      setTotalQuizzes(res.data.total || 0);
       setError('');
     } catch (err) {
       setError('Failed to fetch quizzes');
@@ -55,12 +70,15 @@ export default function AdminPanel() {
     }
   };
 
-  // Fetch users
-  const fetchUsers = async () => {
+  // Fetch users with pagination
+  const fetchUsers = async (page: number = 1, search: string = '') => {
     setLoading(true);
     try {
-      const res = await api.get('/admin/users');
+      const res = await api.get('/admin/users', {
+        params: { page, search }
+      });
       setUsers(res.data.users);
+      setTotalUsers(res.data.total || 0);
       setError('');
     } catch (err) {
       setError('Failed to fetch users');
@@ -70,13 +88,31 @@ export default function AdminPanel() {
     }
   };
 
+  // Load quizzes when page or search term changes
   useEffect(() => {
-    if (activeTab === 'quizzes') {
-      fetchQuizzes();
-    } else {
-      fetchUsers();
+    fetchQuizzes(quizPage, quizSearchTerm);
+  }, [quizPage, quizSearchTerm]);
+
+  // Load users when page or search term changes
+  useEffect(() => {
+    fetchUsers(userPage, userSearchTerm);
+  }, [userPage, userSearchTerm]);
+
+  // Handle quiz search - triggered on Enter key
+  const handleQuizSearch = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setQuizSearchTerm(quizSearchInput);
+      setQuizPage(1);
     }
-  }, [activeTab]);
+  };
+
+  // Handle user search - triggered on Enter key
+  const handleUserSearch = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setUserSearchTerm(userSearchInput);
+      setUserPage(1);
+    }
+  };
 
   // Delete quiz
   const handleDeleteQuiz = async (quizId: string) => {
@@ -174,6 +210,9 @@ export default function AdminPanel() {
     }
   };
 
+  const quizPages = Math.ceil(totalQuizzes / ITEMS_PER_PAGE);
+  const userPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
+
   if (!user?.isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -214,7 +253,7 @@ export default function AdminPanel() {
               : 'border-transparent text-gray-600 hover:text-gray-800'
           }`}
         >
-          Quizzes ({quizzes.length})
+          Quizzes ({totalQuizzes})
         </button>
         <button
           onClick={() => setActiveTab('users')}
@@ -224,90 +263,132 @@ export default function AdminPanel() {
               : 'border-transparent text-gray-600 hover:text-gray-800'
           }`}
         >
-          Users ({users.length})
+          Users ({totalUsers})
         </button>
       </div>
 
       {/* Quizzes Tab */}
       {activeTab === 'quizzes' && (
         <div>
+          {/* Search Bar */}
+          <div className="mb-6 relative">
+            <Search className="absolute left-3 top-3 text-gray-500" size={20} />
+            <input
+              type="text"
+              placeholder="Search quizzes by title or author... (Press Enter)"
+              value={quizSearchInput}
+              onChange={(e) => setQuizSearchInput(e.target.value)}
+              onKeyPress={handleQuizSearch}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
           {loading ? (
             <div className="text-center py-8 text-gray-500">Loading quizzes...</div>
           ) : quizzes.length === 0 ? (
-            <Card className="text-center py-8 text-gray-500">No quizzes found</Card>
+            <Card className="text-center py-8 text-gray-500">
+              {quizSearchTerm ? 'No quizzes match your search' : 'No quizzes found'}
+            </Card>
           ) : (
-            <div className="space-y-4">
-              {quizzes.map(quiz => (
-                <Card key={quiz.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg mb-1">{quiz.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{quiz.description || 'No description'}</p>
-                      <div className="flex gap-4 text-sm text-gray-500">
-                        <span>By: {quiz.user.username}</span>
-                        <span>Genre: {quiz.genre}</span>
-                        <span>Visibility: {quiz.visibility}</span>
-                        <span>Questions: {quiz.questions.length}</span>
-                        <span>Plays: {quiz.playCount}</span>
+            <>
+              <div className="space-y-4 mb-6">
+                {quizzes.map(quiz => (
+                  <Card key={quiz.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-1">{quiz.title}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{quiz.description || 'No description'}</p>
+                        <div className="flex gap-4 text-sm text-gray-500 flex-wrap">
+                          <span>By: {quiz.user.username}</span>
+                          <span>Genre: {quiz.genre}</span>
+                          <span>Visibility: {quiz.visibility}</span>
+                          <span>Questions: {quiz.questions.length}</span>
+                          <span>Plays: {quiz.playCount}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setEditingQuiz(editingQuiz === quiz.id ? null : quiz.id)}
-                      >
-                        <Edit2 size={16} />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleDeleteQuiz(quiz.id)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Edit Quiz Form */}
-                  {editingQuiz === quiz.id && (
-                    <div className="mt-4 pt-4 border-t space-y-3">
-                      <input
-                        type="text"
-                        placeholder="Title"
-                        defaultValue={quiz.title}
-                        className="w-full px-3 py-2 border rounded-lg text-sm"
-                        id={`quiz-title-${quiz.id}`}
-                      />
-                      <textarea
-                        placeholder="Description"
-                        defaultValue={quiz.description}
-                        className="w-full px-3 py-2 border rounded-lg text-sm"
-                        rows={3}
-                        id={`quiz-desc-${quiz.id}`}
-                      />
-                      <select
-                        defaultValue={quiz.visibility}
-                        className="w-full px-3 py-2 border rounded-lg text-sm"
-                        id={`quiz-visibility-${quiz.id}`}
-                      >
-                        <option value="PUBLIC">Public</option>
-                        <option value="PRIVATE">Private</option>
-                        <option value="UNLISTED">Unlisted</option>
-                      </select>
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => setEditingQuiz(null)}>
-                          Save Changes
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingQuiz(editingQuiz === quiz.id ? null : quiz.id)}
+                        >
+                          <Edit2 size={16} />
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setEditingQuiz(null)}>
-                          Cancel
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeleteQuiz(quiz.id)}
+                        >
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </div>
-                  )}
-                </Card>
-              ))}
-            </div>
+
+                    {/* Edit Quiz Form */}
+                    {editingQuiz === quiz.id && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Title"
+                          defaultValue={quiz.title}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          id={`quiz-title-${quiz.id}`}
+                        />
+                        <textarea
+                          placeholder="Description"
+                          defaultValue={quiz.description}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          rows={3}
+                          id={`quiz-desc-${quiz.id}`}
+                        />
+                        <select
+                          defaultValue={quiz.visibility}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          id={`quiz-visibility-${quiz.id}`}
+                        >
+                          <option value="PUBLIC">Public</option>
+                          <option value="PRIVATE">Private</option>
+                          <option value="UNLISTED">Unlisted</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => setEditingQuiz(null)}>
+                            Save Changes
+                          </Button>
+                          <Button size="sm" variant="secondary" onClick={() => setEditingQuiz(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+
+              {/* Quiz Pagination */}
+              {quizPages > 1 && (
+                <div className="flex items-center justify-between mt-6">
+                  <span className="text-sm text-gray-600">Page {quizPage} of {quizPages}</span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setQuizPage(Math.max(1, quizPage - 1))}
+                      disabled={quizPage === 1}
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setQuizPage(Math.min(quizPages, quizPage + 1))}
+                      disabled={quizPage === quizPages}
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -315,98 +396,140 @@ export default function AdminPanel() {
       {/* Users Tab */}
       {activeTab === 'users' && (
         <div>
+          {/* Search Bar */}
+          <div className="mb-6 relative">
+            <Search className="absolute left-3 top-3 text-gray-500" size={20} />
+            <input
+              type="text"
+              placeholder="Search users by username... (Press Enter)"
+              value={userSearchInput}
+              onChange={(e) => setUserSearchInput(e.target.value)}
+              onKeyPress={handleUserSearch}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
           {loading ? (
             <div className="text-center py-8 text-gray-500">Loading users...</div>
           ) : users.length === 0 ? (
-            <Card className="text-center py-8 text-gray-500">No users found</Card>
+            <Card className="text-center py-8 text-gray-500">
+              {userSearch ? 'No users match your search' : 'No users found'}
+            </Card>
           ) : (
-            <div className="space-y-4">
-              {users.map(u => (
-                <Card key={u.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-lg">{u.username}</h3>
-                        {u.isAdmin && <Shield size={16} className="text-blue-600" />}
-                        {u.isSuspended && <Lock size={16} className="text-red-600" />}
+            <>
+              <div className="space-y-4 mb-6">
+                {users.map(u => (
+                  <Card key={u.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-lg">{u.username}</h3>
+                          {u.isAdmin && <Shield size={16} className="text-blue-600" />}
+                          {u.isSuspended && <Lock size={16} className="text-red-600" />}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mt-2">
+                          <span>Points: {u.totalPoints}</span>
+                          <span>XP: {u.xp}</span>
+                          <span>Coins: {u.coins}</span>
+                          <span>Joined: {new Date(u.createdAt).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mt-2">
-                        <span>Points: {u.totalPoints}</span>
-                        <span>XP: {u.xp}</span>
-                        <span>Coins: {u.coins}</span>
-                        <span>Joined: {new Date(u.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 flex-wrap justify-end">
-                      <Button
-                        size="sm"
-                        variant={u.isAdmin ? 'secondary' : 'primary'}
-                        onClick={() => handleToggleAdmin(u.id, u.isAdmin)}
-                        disabled={user?.id === u.id}
-                      >
-                        {u.isAdmin ? <ShieldOff size={16} /> : <Shield size={16} />}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={u.isSuspended ? 'primary' : 'secondary'}
-                        onClick={() => handleToggleSuspend(u.id, u.isSuspended)}
-                        disabled={user?.id === u.id}
-                      >
-                        {u.isSuspended ? <Unlock size={16} /> : <Lock size={16} />}
-                      </Button>
-                      {editingUser !== u.id && (
+                      <div className="flex gap-2 flex-wrap justify-end">
                         <Button
                           size="sm"
-                          variant="secondary"
-                          onClick={() => setEditingUser(u.id)}
+                          variant={u.isAdmin ? 'secondary' : 'primary'}
+                          onClick={() => handleToggleAdmin(u.id, u.isAdmin)}
+                          disabled={user?.id === u.id}
                         >
-                          <Edit2 size={16} />
+                          {u.isAdmin ? <ShieldOff size={16} /> : <Shield size={16} />}
                         </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleDeleteUser(u.id)}
-                        disabled={user?.id === u.id}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                        <Button
+                          size="sm"
+                          variant={u.isSuspended ? 'primary' : 'secondary'}
+                          onClick={() => handleToggleSuspend(u.id, u.isSuspended)}
+                          disabled={user?.id === u.id}
+                        >
+                          {u.isSuspended ? <Unlock size={16} /> : <Lock size={16} />}
+                        </Button>
+                        {editingUser !== u.id && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setEditingUser(u.id)}
+                          >
+                            <Edit2 size={16} />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDeleteUser(u.id)}
+                          disabled={user?.id === u.id}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Edit User Form */}
-                  {editingUser === u.id && (
-                    <div className="mt-4 pt-4 border-t space-y-3">
-                      <label className="text-sm font-semibold">Coins</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          defaultValue={u.coins}
-                          className="flex-1 px-3 py-2 border rounded-lg"
-                          id={`user-coins-${u.id}`}
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            const input = document.getElementById(`user-coins-${u.id}`) as HTMLInputElement;
-                            handleUpdateCoins(u.id, parseInt(input.value));
-                          }}
-                        >
-                          Update
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setEditingUser(null)}
-                        >
-                          Cancel
-                        </Button>
+                    {/* Edit User Form */}
+                    {editingUser === u.id && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        <label className="text-sm font-semibold">Coins</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            defaultValue={u.coins}
+                            className="flex-1 px-3 py-2 border rounded-lg"
+                            id={`user-coins-${u.id}`}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              const input = document.getElementById(`user-coins-${u.id}`) as HTMLInputElement;
+                              handleUpdateCoins(u.id, parseInt(input.value));
+                            }}
+                          >
+                            Update
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setEditingUser(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+
+              {/* User Pagination */}
+              {userPages > 1 && (
+                <div className="flex items-center justify-between mt-6">
+                  <span className="text-sm text-gray-600">Page {userPage} of {userPages}</span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setUserPage(Math.max(1, userPage - 1))}
+                      disabled={userPage === 1}
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setUserPage(Math.min(userPages, userPage + 1))}
+                      disabled={userPage === userPages}
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

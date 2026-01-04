@@ -11,7 +11,8 @@
     "build": "npm run server:build && npm run client:build",
     "preview": "vite preview",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@fontsource/plus-jakarta-sans": "^5.2.8",
