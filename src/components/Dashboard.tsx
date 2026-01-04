@@ -2,11 +2,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { User, Quiz, getLevelProgress } from '../types';
+import { User, Quiz } from '../types';
 import { quizAPI } from '../api';
 import { getGenreIcon } from '../utils/genre';
 import { generateAvatarUrl } from '../utils/avatar';
 import { downloadQuiz } from '../utils/quizImportExport';
+import { getLevelProgress } from '../utils/leveling';
 import toast from 'react-hot-toast';
 
 interface DashboardProps {

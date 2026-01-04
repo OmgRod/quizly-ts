@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Quiz, getLevelProgress } from '../types';
+import { User, Quiz } from '../types';
 import { quizAPI, userAPI } from '../api';
 import { generateAvatarUrl } from '../utils/avatar';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import { getGenreIcon } from '../utils/genre';
+import { getLevelProgress } from '../utils/leveling';
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();

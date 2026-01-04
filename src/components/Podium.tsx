@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Player, User, getLevelProgress } from '../types';
+import { Player, User } from '../types';
+import { getLevelProgress } from '../utils/leveling';
 
 interface PodiumProps {
   players: Player[];
