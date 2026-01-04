@@ -103,8 +103,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     setUploadProgress({ current: 0, total: files.length });
     let successCount = 0;
     let failedCount = 0;
-    let skippedCount = 0;
     const failedFiles: string[] = [];
+
+    // Get all existing quizzes to check for duplicates
+    let existingQuizzes: any[] = [];
+    try {
+      const response = await quizAPI.getAll({ userId: user.id });
+      existingQuizzes = response;
+    } catch (err) {
+      console.warn('Could not fetch existing quizzes for duplicate check:', err);
+    }
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -117,15 +125,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
         } else if (result.quiz) {
           try {
             // Check if a quiz with this name already exists
-            const existingQuizzes = await quizAPI.list();
             const isDuplicate = existingQuizzes.some((q: any) => q.title === result.quiz!.title);
             
             if (isDuplicate) {
-              skippedCount++;
+              failedCount++;
+              failedFiles.push(`${file.name}: Quiz with name "${result.quiz.title}" already exists`);
               console.log(`Skipped ${file.name}: Quiz with name "${result.quiz.title}" already exists`);
             } else {
               await quizAPI.create(result.quiz);
               successCount++;
+              existingQuizzes.push(result.quiz); // Add to list for subsequent checks
             }
           } catch (err: any) {
             failedCount++;
@@ -149,13 +158,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
       toast.success(`Uploaded ${successCount} quiz${successCount !== 1 ? 'zes' : ''}`);
     }
 
-    if (skippedCount > 0) {
-      toast('Skipped ' + skippedCount + ' duplicate quiz' + (skippedCount !== 1 ? 'zes' : ''));
-    }
-
     if (failedCount > 0) {
       const failureMessage = failedFiles.length > 5 
-        ? `${failedCount} quizzes failed to upload (check console for details)`
+        ? `${failedCount} quizzes failed or skipped (check console for details)`
         : failedFiles.join('\n');
       toast.error(failureMessage);
       console.log('Failed files:', failedFiles);
