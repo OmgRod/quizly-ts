@@ -3,6 +3,7 @@ import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
+import rateLimit from 'express-rate-limit';
 
 // Helper to serialize JSON fields to strings for SQLite
 const serializeQuestion = (q: any, index: number) => ({
@@ -24,6 +25,11 @@ const serializeQuestion = (q: any, index: number) => ({
   isCaseSensitive: q.isCaseSensitive || false,
   timeLimit: q.timeLimit || 20,
   orderIndex: index
+});
+
+const quizWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 quiz write requests per windowMs
 });
 
 // Helper to deserialize JSON strings back to objects/arrays
@@ -433,7 +439,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create quiz (requires auth)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', quizWriteLimiter, requireAuth, async (req, res) => {
   try {
     const { title, genre, description, questions, visibility } = req.body;
     const userId = req.session.userId!;
@@ -487,7 +493,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Update quiz (requires auth)
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', quizWriteLimiter, requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, genre, description, questions, visibility } = req.body;
