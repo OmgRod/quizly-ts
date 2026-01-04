@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import prisma from '../prisma';
-import { requireAuth } from '../middleware/auth';
-import { isValidUsername } from '../middleware/inputValidation';
+import prisma from '../prisma.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isValidUsername } from '../middleware/inputValidation.js';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();

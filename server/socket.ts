@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import prisma from './prisma';
+import prisma from './prisma.js';
 
 // GameState enum to convert numeric values to strings for database
 enum GameState {

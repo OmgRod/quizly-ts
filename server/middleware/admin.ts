@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../prisma';
+import prisma from '../prisma.js';
 
 declare global {
   namespace Express {

@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Quiz, QuestionType, PointType, Question } from "../../src/types";
+import { Quiz, QuestionType, PointType, Question } from "../../src/types.js";
 
 const modelName = "gemini-3-flash-preview";
 

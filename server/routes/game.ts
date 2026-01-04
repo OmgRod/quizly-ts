@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import prisma from '../prisma';
-import { requireAuth } from '../middleware/auth';
-import { isValidUUID } from '../middleware/inputValidation';
+import prisma from '../prisma.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isValidUUID } from '../middleware/inputValidation.js';
 import rateLimit from 'express-rate-limit';
 
 // Helper to deserialize questions from quiz

@@ -1,6 +1,6 @@
-import { Quiz } from "../../src/types";
-import * as geminiService from "./geminiService";
-import * as ollamaService from "./ollamaService";
+import { Quiz } from "../../src/types.js";
+import * as geminiService from "./geminiService.js";
+import * as ollamaService from "./ollamaService.js";
 
 // Set AI provider via environment variable: 'gemini' or 'ollama'
 const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";

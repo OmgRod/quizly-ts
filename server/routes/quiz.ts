@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import prisma from '../prisma';
-import { requireAuth } from '../middleware/auth';
-import { isValidUUID, sanitizeText } from '../middleware/inputValidation';
-import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService';
+import prisma from '../prisma.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isValidUUID, sanitizeText } from '../middleware/inputValidation.js';
+import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService.js';
 import rateLimit from 'express-rate-limit';
 
 // Rate limiter for AI endpoints to prevent abuse / DoS
