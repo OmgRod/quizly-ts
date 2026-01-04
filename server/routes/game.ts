@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth';
 import { isValidUUID } from '../middleware/inputValidation';
+import rateLimit from 'express-rate-limit';
 
 // Helper to deserialize questions from quiz
 const deserializeQuestion = (q: any) => ({
@@ -19,8 +20,15 @@ const isValidPIN = (pin: string): boolean => /^\d{6,8}$/.test(pin);
 
 const router = Router();
 
+const createGameLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // limit each IP to 10 create requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // Create game session
-router.post('/create', requireAuth, async (req, res) => {
+router.post('/create', createGameLimiter, requireAuth, async (req, res) => {
   try {
     const { quizId, solo } = req.body;
     const userId = req.session.userId!;
