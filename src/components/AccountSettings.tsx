@@ -2,8 +2,9 @@ import toast from 'react-hot-toast';
 
 import React, { useState } from 'react';
 import { User, GameState } from '../types';
-import { userAPI } from '../api';
+import { userAPI, quizAPI } from '../api';
 import { generateAvatarUrl } from '../utils/avatar';
+import { parseQuizFile } from '../utils/quizImportExport';
 
 interface AccountSettingsProps {
   user: User;
@@ -24,6 +25,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
   const [profileVisibility, setProfileVisibility] = useState(user.profileVisibility ?? true);
   const [showQuizStats, setShowQuizStats] = useState(user.showQuizStats ?? true);
   const [anonymousMode, setAnonymousMode] = useState(user.anonymousMode ?? false);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +93,57 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
       console.error('Failed to delete account:', error);
       setLoading(false);
     }
+  };
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setBulkUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
+    let successCount = 0;
+    let failedCount = 0;
+    const failedFiles: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const result = await parseQuizFile(file);
+        if (result.error) {
+          failedCount++;
+          failedFiles.push(`${file.name}: ${result.error}`);
+        } else if (result.quiz) {
+          try {
+            await quizAPI.create(result.quiz);
+            successCount++;
+          } catch (err: any) {
+            failedCount++;
+            failedFiles.push(`${file.name}: Failed to save quiz`);
+          }
+        }
+      } catch (err) {
+        failedCount++;
+        failedFiles.push(`${file.name}: Failed to read file`);
+      }
+      setUploadProgress({ current: i + 1, total: files.length });
+    }
+
+    setBulkUploading(false);
+    setUploadProgress({ current: 0, total: 0 });
+
+    if (successCount > 0) {
+      toast.success(`Uploaded ${successCount} quiz${successCount !== 1 ? 'zes' : ''}`);
+    }
+
+    if (failedCount > 0) {
+      const failureMessage = failedFiles.length > 3 
+        ? `${failedCount} quizzes failed to upload`
+        : failedFiles.join('\n');
+      toast.error(failureMessage);
+    }
+
+    // Reset file input
+    e.target.value = '';
   };
 
   return (
@@ -176,7 +230,53 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
           </form>
         </div>
 
-        {/* Action Zone: Logout */}
+        {/* Bulk Quiz Upload */}
+        <div className="glass p-10 rounded-[3rem] border-white/10">
+          <div className="flex items-center gap-4 text-white mb-6">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+              <i className="bi bi-cloud-upload text-2xl"></i>
+            </div>
+            <div>
+              <h3 className="font-black uppercase tracking-tighter text-lg">Bulk Import Quizzes</h3>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Upload multiple quiz JSON files at once.</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <p className="text-slate-500 text-sm font-medium">Select multiple JSON quiz files to import them all at once. Each file will be validated and added to your quiz library.</p>
+            
+            <label className="flex items-center justify-center w-full px-6 py-8 bg-white/5 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/10 hover:border-blue-500/50 transition-all group">
+              <div className="text-center">
+                <i className="bi bi-file-earmark-arrow-up text-3xl text-slate-500 group-hover:text-blue-400 mb-3 block"></i>
+                <span className="text-sm font-bold text-white uppercase tracking-widest block">Select JSON Files</span>
+                <span className="text-xs text-slate-500 mt-2">or drag and drop</span>
+              </div>
+              <input 
+                type="file" 
+                multiple
+                accept=".json"
+                onChange={handleBulkUpload}
+                disabled={bulkUploading}
+                className="hidden"
+              />
+            </label>
+
+            {bulkUploading && (
+              <div className="bg-white/5 border border-blue-500/30 rounded-2xl p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-white">Uploading quizzes...</span>
+                  <span className="text-xs text-slate-500">{uploadProgress.current}/{uploadProgress.total}</span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="bg-blue-500 h-full transition-all duration-300"
+                    style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="glass p-10 rounded-[3rem] border-white/5 bg-white/5 space-y-4">
           <div className="flex items-center gap-4 text-white">
             <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
