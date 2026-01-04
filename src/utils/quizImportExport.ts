@@ -72,10 +72,9 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
       }
 
       // Question types that require options
-      const typesRequiringOptions = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'PUZZLE', 'POLL'];
-      const typesWithoutOptions = ['INPUT', 'WORD_CLOUD', 'OPEN_ENDED', 'AUDIO_QUIZ', 'IMAGE_QUIZ', 'SLIDER', 'SCALE', 'FLASHCARD'];
-
-      // Only validate options for types that require them
+      const typesRequiringOptions = ['MULTIPLE_CHOICE', 'TRUE_FALSE'];
+      
+      // Only validate strict options for types that explicitly require them
       if (typesRequiringOptions.includes(q.type)) {
         if (!Array.isArray(q.options)) {
           return { valid: false, error: `Question ${i + 1}: Options must be an array` };
@@ -85,13 +84,21 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
           return { valid: false, error: `Question ${i + 1}: Must have at least 2 answer options` };
         }
 
-        if (q.options.length > 6) {
-          return { valid: false, error: `Question ${i + 1}: Cannot have more than 6 options` };
+        // Relaxed limit for imported quizzes - allow up to 10 options
+        if (q.options.length > 10) {
+          return { valid: false, error: `Question ${i + 1}: Cannot have more than 10 options` };
         }
 
         for (let j = 0; j < q.options.length; j++) {
           if (typeof q.options[j] !== 'string' || q.options[j].trim().length === 0) {
             return { valid: false, error: `Question ${i + 1}: Option ${j + 1} is empty` };
+          }
+        }
+      } else if (Array.isArray(q.options) && q.options.length > 0) {
+        // If options exist for any type, just validate their format without strict counting
+        for (let j = 0; j < q.options.length; j++) {
+          if (typeof q.options[j] !== 'string') {
+            q.options[j] = String(q.options[j]);
           }
         }
       }
@@ -103,7 +110,14 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
         }
       } else if (q.type === 'POLL') {
         // POLL questions are opinion-based and don't require correct answers
-        // No validation needed
+        // If they have options, validate option format but not count
+        if (Array.isArray(q.options)) {
+          for (let j = 0; j < q.options.length; j++) {
+            if (typeof q.options[j] !== 'string') {
+              q.options[j] = String(q.options[j]);
+            }
+          }
+        }
       } else if (q.type === 'WORD_CLOUD' || q.type === 'OPEN_ENDED') {
         // These types typically don't have correct answers
         // No validation needed
@@ -114,7 +128,8 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
         const hasCorrectIndices = Array.isArray(q.correctIndices) && q.correctIndices.length > 0;
         
         if (!hasCorrectAnswer && !hasCorrectIndices) {
-          return { valid: false, error: `Question ${i + 1}: Must have a correct answer or correct indices` };
+          // If no correct answer specified, that's okay for imported quizzes - be lenient
+          // return { valid: false, error: `Question ${i + 1}: Must have a correct answer or correct indices` };
         }
 
         // Validate correctAnswer if present
