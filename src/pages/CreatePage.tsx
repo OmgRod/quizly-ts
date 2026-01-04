@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { parseQuizFile } from '../utils/quizImportExport';
@@ -46,7 +47,13 @@ const CreatePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
+    <>
+      <Helmet>
+        <title>Create a Quiz | Quizly</title>
+        <meta name="description" content="Create your own quiz with AI or manual editor. Import, edit, and share quizzes easily on Quizly." />
+        <link rel="canonical" href="https://yourdomain.com/create" />
+      </Helmet>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
       <div className="max-w-6xl w-full space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-6xl font-black text-white tracking-tighter uppercase">
@@ -221,6 +228,8 @@ const CreatePage: React.FC = () => {
         </div>
       </div>
     </div>
+      </div>
+    </>
   );
 };
 

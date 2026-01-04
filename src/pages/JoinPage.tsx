@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import Join from '../components/Join';
 import { gameAPI } from '../api';
@@ -20,7 +21,14 @@ const JoinPage: React.FC = () => {
     navigate('/');
   };
 
-  return <Join onJoin={handleJoin} onBack={handleBack} />;
+  return <>
+    <Helmet>
+      <title>Enter Game PIN | Quizly</title>
+      <meta name="description" content="Enter your game PIN to join a live quiz session on Quizly." />
+      <link rel="canonical" href="https://yourdomain.com/join" />
+    </Helmet>
+    <Join onJoin={handleJoin} onBack={handleBack} />
+  </>;
 };
 
 export default JoinPage;

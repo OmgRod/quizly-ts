@@ -235,7 +235,7 @@ const PrivacyPolicy: React.FC = () => {
               information, please contact us:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li><strong>Email:</strong> <a href="mailto:support@quizly.example.com" className="text-blue-400 hover:text-blue-300 underline">support@quizly.example.com</a></li>
+              <li><strong>Email:</strong> <a href="mailto:quizlysupport@omgrod.me" className="text-blue-400 hover:text-blue-300 underline">quizlysupport@omgrod.me</a></li>
               <li><strong>GitHub:</strong> <a href="https://github.com/OmgRod/quizly-ts" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">github.com/OmgRod/quizly-ts</a></li>
             </ul>
             <p className="mt-4">

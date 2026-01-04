@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import Browse from '../components/Browse';
 import { quizAPI, gameAPI } from '../api';
@@ -47,7 +48,14 @@ const BrowsePage: React.FC = () => {
     }
   };
 
-  return <Browse onStartQuiz={handleStartQuiz} />;
+  return <>
+    <Helmet>
+      <title>Browse Quizzes | Quizly</title>
+      <meta name="description" content="Browse all public quizzes on Quizly. Find quizzes by category, popularity, or creator." />
+      <link rel="canonical" href="https://yourdomain.com/browse" />
+    </Helmet>
+    <Browse onStartQuiz={handleStartQuiz} />
+  </>;
 };
 
 export default BrowsePage;
