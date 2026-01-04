@@ -239,6 +239,16 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
                     <i className="bi bi-speedometer2 text-lg w-5"></i>
                     <span>Dashboard</span>
                   </Link>
+                  {user?.isAdmin && (
+                    <Link 
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${location.pathname === '/admin' ? 'text-white bg-purple-600 border border-purple-500' : 'text-slate-300 bg-slate-800 hover:text-white hover:bg-slate-700'}`}
+                    >
+                      <i className="bi bi-shield-lock text-lg w-5"></i>
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
                   <Link 
                     to="/settings"
                     onClick={() => setMobileMenuOpen(false)}

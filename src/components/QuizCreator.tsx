@@ -219,8 +219,8 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onQuizCreated, onBack, isSolo
                    <div className="bg-white/5 border border-white/5 p-5 rounded-2xl flex items-center gap-4">
                       <input 
                         type="range"
-                        min="3"
-                        max="25"
+                        min="1"
+                        max="10"
                         value={questionCount}
                         onChange={(e) => setQuestionCount(parseInt(e.target.value))}
                         className="flex-1 accent-blue-500 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer"

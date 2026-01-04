@@ -8,6 +8,7 @@ import authRoutes from './routes/auth';
 import quizRoutes from './routes/quiz';
 import gameRoutes from './routes/game';
 import userRoutes from './routes/user';
+import adminRoutes from './routes/admin';
 import { setupSocketHandlers } from './socket';
 import { validateInput, validatePagination } from './middleware/inputValidation';
 import prisma from './prisma';
@@ -93,6 +94,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/game', gameRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

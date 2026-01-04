@@ -90,6 +90,8 @@ export interface User {
   profileVisibility?: boolean;
   showQuizStats?: boolean;
   anonymousMode?: boolean;
+  isAdmin?: boolean;
+  isSuspended?: boolean;
 }
 
 export interface Player {

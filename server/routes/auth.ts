@@ -69,7 +69,9 @@ router.post('/register', async (req, res) => {
         profilePicture: true,
         profileVisibility: true,
         showQuizStats: true,
-        anonymousMode: true
+        anonymousMode: true,
+        isAdmin: true,
+        isSuspended: true
       }
     });
 
@@ -121,7 +123,9 @@ router.post('/login', async (req, res) => {
         profilePicture: user.profilePicture,
         profileVisibility: user.profileVisibility,
         showQuizStats: user.showQuizStats,
-        anonymousMode: user.anonymousMode
+        anonymousMode: user.anonymousMode,
+        isAdmin: user.isAdmin,
+        isSuspended: user.isSuspended
       }
     });
   } catch (error) {
@@ -154,7 +158,9 @@ router.get('/me', meRateLimiter, requireAuth, async (req, res) => {
         profilePicture: true,
         profileVisibility: true,
         showQuizStats: true,
-        anonymousMode: true
+        anonymousMode: true,
+        isAdmin: true,
+        isSuspended: true
       }
     });
 

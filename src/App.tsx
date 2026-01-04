@@ -17,6 +17,7 @@ import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import QuizDetailPage from './pages/QuizDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
+import AdminPage from './pages/AdminPage';
 import ErrorPage from './pages/ErrorPage';
 import Header from './components/Header';
 import TermsOfService from './components/TermsOfService';
@@ -81,6 +82,11 @@ const App: React.FC = () => {
           <Route path="/settings" element={
             <ProtectedRoute>
               <Layout><SettingsPage /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Layout><AdminPage /></Layout>
             </ProtectedRoute>
           } />
           <Route path="/create" element={

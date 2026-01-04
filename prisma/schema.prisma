@@ -18,6 +18,8 @@ model User {
   profileVisibility Boolean @default(true)
   showQuizStats Boolean @default(true)
   anonymousMode Boolean @default(false)
+  isAdmin     Boolean  @default(false)
+  isSuspended Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
