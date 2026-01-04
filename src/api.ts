@@ -109,28 +109,24 @@ export const authAPI = {
 export const quizAPI = {
   getAll: (params?: { genre?: string; search?: string; userId?: string }) => 
     api.get('/quiz', { params }),
-  
   getById: (id: string) => 
     api.get(`/quiz/${id}`),
-  
   create: (quiz: any) => 
     api.post('/quiz', quiz),
-  
   update: (id: string, quiz: any) => 
     api.put(`/quiz/${id}`, quiz),
-  
   delete: (id: string) => 
     api.delete(`/quiz/${id}`),
-  
   incrementPlayCount: (id: string) => 
     api.post(`/quiz/${id}/play`),
-  
   // AI generation endpoints
   generateFromAI: (topic: string, count: number, userId?: string) => 
     api.post('/quiz/ai/generate', { topic, count, userId }),
-  
   modifyWithAI: (quiz: any, instruction: string, userId?: string, questionCount?: number) => 
-    api.post('/quiz/ai/modify', { quiz, instruction, userId, questionCount })
+    api.post('/quiz/ai/modify', { quiz, instruction, userId, questionCount }),
+  // Reset all quizzes and quiz history for the current user
+  resetAllUserQuizData: () =>
+    api.post('/user/reset-quiz-data')
 };
 
 // Game endpoints
@@ -155,21 +151,19 @@ export const gameAPI = {
 export const userAPI = {
   getProfile: (id: string) => 
     api.get(`/user/${id}`),
-  
   updateProfile: (data: any) => 
     api.put('/user/profile', data),
-  
   deleteAccount: () => 
     api.delete('/user/account'),
-  
   getQuizzes: (id: string) => 
     api.get(`/user/${id}/quizzes`),
-  
   getGlobalLeaderboard: (params?: { limit?: number; offset?: number; type?: 'xp' | 'coins' | 'points' }) => 
     api.get('/user/leaderboard/global', { params }),
-  
   acceptLegalUpdates: (tosVersion: string, privacyVersion: string) =>
-    api.post('/user/accept-legal', { tosVersion, privacyVersion })
+    api.post('/user/accept-legal', { tosVersion, privacyVersion }),
+  // Log out all sessions except current
+  logoutAllSessions: () =>
+    api.post('/user/logout-all')
 };
 
 export default api;

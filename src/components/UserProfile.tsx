@@ -95,8 +95,18 @@ const UserProfile: React.FC = () => {
             />
             <h1 className="text-4xl font-black text-white mb-2">{user?.username || 'User'}</h1>
             
-            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20 mb-8">
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20 mb-4">
               Level {level}
+            </div>
+
+            {/* Join Date and Last Online, shown only if allowed by privacy settings */}
+            <div className="flex flex-col items-center gap-1 mb-8">
+              {user?.showJoinDate !== false && user?.createdAt && (
+                <div className="text-xs text-slate-400 font-bold">Joined: {new Date(user.createdAt).toLocaleDateString()}</div>
+              )}
+              {user?.showLastOnline !== false && user?.lastActiveAt && (
+                <div className="text-xs text-slate-400 font-bold">Last Online: {new Date(user.lastActiveAt).toLocaleDateString()}</div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 w-full mb-8">

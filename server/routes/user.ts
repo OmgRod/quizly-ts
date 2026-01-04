@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma.js';
@@ -6,6 +7,55 @@ import { isValidUUID, isValidImageUrl, isValidUsername } from '../middleware/inp
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+// Reset all quiz data for the current user (delete all their quizzes and quiz history)
+router.post('/reset-quiz-data', requireAuth, async (req, res) => {
+  try {
+    const userId = req.userId!;
+    // Delete all quizzes by this user
+    await prisma.quiz.deleteMany({ where: { userId } });
+    // Optionally, delete quiz history if tracked elsewhere (e.g., quiz attempts)
+    // await prisma.quizHistory.deleteMany({ where: { userId } });
+    res.json({ message: 'All quiz data reset successfully' });
+  } catch (error) {
+    console.error('Reset quiz data error:', error);
+    res.status(500).json({ error: 'Failed to reset quiz data' });
+  }
+});
+
+// Log out all sessions except the current one
+router.post('/logout-all', requireAuth, async (req, res) => {
+  try {
+    const userId = req.userId!;
+    // Destroy all sessions for this user except the current session
+    const sessionStore = req.sessionStore;
+    if (!sessionStore || typeof sessionStore.all !== 'function') {
+      return res.status(500).json({ error: 'Session store not available' });
+    }
+    sessionStore.all((err, sessions) => {
+      if (err) {
+        console.error('Session store error:', err);
+        return res.status(500).json({ error: 'Failed to access session store' });
+      }
+      let count = 0;
+      for (const sid in sessions) {
+        const s = sessions[sid];
+        if (s.userId === userId && sid !== req.sessionID) {
+          sessionStore.destroy(sid, (destroyErr) => {
+            if (destroyErr) {
+              console.error('Failed to destroy session:', sid, destroyErr);
+            }
+          });
+          count++;
+        }
+      }
+      res.json({ message: `Logged out of ${count} other sessions` });
+    });
+  } catch (error) {
+    console.error('Logout all sessions error:', error);
+    res.status(500).json({ error: 'Failed to log out all sessions' });
+  }
+});
 
 const profileUpdateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -99,7 +149,9 @@ router.get('/:id', async (req, res) => {
         profilePicture: true,
         profileVisibility: true,
         showQuizStats: true,
-        anonymousMode: true
+        anonymousMode: true,
+        showJoinDate: true,
+        showLastOnline: true
       }
     });
 
@@ -122,7 +174,7 @@ router.get('/:id', async (req, res) => {
 // Update user profile
 router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
   try {
-    const { username, currentPassword, newPassword, xp, coins, totalPoints, profilePicture, profileVisibility, showQuizStats, anonymousMode } = req.body;
+    const { username, currentPassword, newPassword, xp, coins, totalPoints, profilePicture, profileVisibility, showQuizStats, anonymousMode, showJoinDate, showLastOnline } = req.body;
     const userId = req.userId!;
 
     console.log('Profile update request:', {
@@ -209,6 +261,12 @@ router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
     if (typeof anonymousMode === 'boolean') {
       updateData.anonymousMode = anonymousMode;
     }
+    if (typeof showJoinDate === 'boolean') {
+      updateData.showJoinDate = showJoinDate;
+    }
+    if (typeof showLastOnline === 'boolean') {
+      updateData.showLastOnline = showLastOnline;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -223,6 +281,8 @@ router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
         profileVisibility: true,
         showQuizStats: true,
         anonymousMode: true,
+        showJoinDate: true,
+        showLastOnline: true,
         isAdmin: true,
         isSuspended: true,
         acceptedTosVersion: true,

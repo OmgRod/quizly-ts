@@ -90,6 +90,10 @@ export interface User {
   profileVisibility?: boolean;
   showQuizStats?: boolean;
   anonymousMode?: boolean;
+  showJoinDate?: boolean;
+  showLastOnline?: boolean;
+  createdAt?: string | number;
+  lastActiveAt?: string | number;
   isAdmin?: boolean;
   isSuspended?: boolean;
   acceptedTosVersion?: string;

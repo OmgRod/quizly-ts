@@ -24,6 +24,9 @@ model User {
   acceptedPrivacyVersion String? @default("1.0.0")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  lastActiveAt DateTime? // Already present in some code, add if not present
+  showJoinDate Boolean @default(true)
+  showLastOnline Boolean @default(true)
 
   quizzes     Quiz[]
   sessions    GameSession[]
