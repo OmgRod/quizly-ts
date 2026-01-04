@@ -35,7 +35,6 @@ model Quiz {
   id          String   @id @default(cuid())
   userId      String
   authorName  String
-  authorProfilePicture String?
   title       String
   genre       String
   description String   @default("")

@@ -550,7 +550,6 @@ router.post('/', requireAuth, async (req, res) => {
         description: sanitizeText(description || ''),
         visibility: normalizeVisibility(visibility),
         authorName: user.username,
-        authorProfilePicture: user.profilePicture,
         userId,
         questions: {
           create: questions.map((q: any) => serializeQuestion({
@@ -569,6 +568,7 @@ router.post('/', requireAuth, async (req, res) => {
     // Deserialize JSON strings back to objects
     const deserializedQuiz = {
       ...quiz,
+      authorProfilePicture: user.profilePicture,
       questions: quiz.questions.map(deserializeQuestion)
     };
 
@@ -622,7 +622,6 @@ router.put('/:id', requireAuth, async (req, res) => {
         genre,
         description: sanitizeText(description),
         visibility: normalizeVisibility(visibility || existingQuiz.visibility),
-        authorProfilePicture: existingQuiz.authorProfilePicture,
         questions: {
           create: questions.map((q: any) => serializeQuestion({
             ...q,
@@ -637,9 +636,13 @@ router.put('/:id', requireAuth, async (req, res) => {
       }
     });
 
+    // Fetch user for profile picture
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
     // Deserialize JSON strings back to objects
     const deserializedQuiz = {
       ...quiz,
+      authorProfilePicture: user?.profilePicture,
       questions: quiz.questions.map(deserializeQuestion)
     };
 
