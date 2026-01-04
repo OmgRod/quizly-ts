@@ -115,7 +115,7 @@ const LeaderboardPage: React.FC = () => {
                 <img
                   src={currentUser.profilePicture || generateAvatarUrl(currentUser.username)}
                   alt={currentUser.username}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-contain flex-shrink-0 bg-white/5"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Your Rank</div>
@@ -180,7 +180,7 @@ const LeaderboardPage: React.FC = () => {
                     <img
                       src={user.profilePicture || generateAvatarUrl(user.username)}
                       alt={user.username}
-                      className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover flex-shrink-0"
+                      className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-contain flex-shrink-0 bg-white/5"
                     />
 
                     {/* User Info */}

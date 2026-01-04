@@ -74,7 +74,7 @@ const UserProfile: React.FC = () => {
             <img 
               src={user?.profilePicture || generateAvatarUrl(user?.username || 'User')}
               alt={user?.username}
-              className="w-32 h-32 rounded-[3rem] shadow-2xl mb-6 object-cover"
+              className="w-32 h-32 rounded-[3rem] shadow-2xl mb-6 object-contain bg-white/5"
             />
             <h1 className="text-4xl font-black text-white mb-2">{user?.username || 'User'}</h1>
             

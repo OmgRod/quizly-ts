@@ -1,5 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { User, Quiz, getLevelProgress } from '../types';
 import { quizAPI } from '../api';
@@ -22,6 +23,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
   const [loading, setLoading] = useState(true);
   const [confirmingQuiz, setConfirmingQuiz] = useState<Quiz | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
+  const dropdownButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [renamingQuiz, setRenamingQuiz] = useState<Quiz | null>(null);
+  const [newTitle, setNewTitle] = useState('');
 
   useEffect(() => {
     const loadQuizzes = async () => {
@@ -39,6 +45,37 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
     loadQuizzes();
   }, [user?.id]);
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside dropdown and its trigger button
+      if (!target.closest('.dropdown-container') && !target.closest('.dropdown-menu')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openDropdownId]);
+
+  const handleDropdownOpen = (quizId: string, buttonElement: HTMLButtonElement) => {
+    if (openDropdownId === quizId) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+      return;
+    }
+
+    const rect = buttonElement.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + window.scrollY + 8,
+      left: rect.right - 192 + window.scrollX // Align right edge
+    });
+    setOpenDropdownId(quizId);
+  };
+
   const handleConfirmDelete = async () => {
     if (!confirmingQuiz) return;
     const id = confirmingQuiz.id;
@@ -53,6 +90,49 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
     } finally {
       setConfirmingQuiz(null);
       setTimeout(() => setRemovingId(null), 200);
+    }
+  };
+
+  const handleRename = async () => {
+    if (!renamingQuiz || !newTitle.trim()) return;
+    try {
+      await quizAPI.update(renamingQuiz.id, { ...renamingQuiz, title: newTitle });
+      setQuizzes(prev => prev.map(q => q.id === renamingQuiz.id ? { ...q, title: newTitle } : q));
+      toast.success('Quiz renamed!');
+    } catch (error) {
+      console.error('Failed to rename quiz:', error);
+      toast.error('Failed to rename quiz');
+    } finally {
+      setRenamingQuiz(null);
+      setNewTitle('');
+    }
+  };
+
+  const handleClone = async (quiz: Quiz) => {
+    try {
+      const clonedQuiz = {
+        ...quiz,
+        title: `${quiz.title} (Copy)`,
+        playCount: 0,
+        visibility: 'DRAFT'
+      };
+      delete (clonedQuiz as any).id;
+      delete (clonedQuiz as any).createdAt;
+      delete (clonedQuiz as any).updatedAt;
+      
+      const response = await quizAPI.create(clonedQuiz);
+      // Ensure the response includes questions array
+      const newQuiz = response.data.quiz || response.data;
+      if (newQuiz && newQuiz.questions) {
+        setQuizzes(prev => [newQuiz, ...prev]);
+        toast.success('Quiz cloned!');
+      } else {
+        console.error('Clone response missing questions:', newQuiz);
+        toast.error('Failed to clone quiz - incomplete data');
+      }
+    } catch (error) {
+      console.error('Failed to clone quiz:', error);
+      toast.error('Failed to clone quiz');
     }
   };
 
@@ -81,7 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
             <img 
               src={user.profilePicture || generateAvatarUrl(user.username)}
               alt={user.username}
-              className="w-20 sm:w-24 h-20 sm:h-24 rounded-2xl sm:rounded-[2.5rem] object-cover shadow-2xl mb-4 sm:mb-6"
+              className="w-20 sm:w-24 h-20 sm:h-24 rounded-2xl sm:rounded-[2.5rem] object-contain shadow-2xl mb-4 sm:mb-6 bg-white/5"
             />
               <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">{user.username}</h2>
               
@@ -153,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
                 <div 
                   key={q.id} 
                   onClick={() => navigate(`/quiz/${q.id}`)}
-                  className={`glass p-6 rounded-[2rem] border-white/5 flex flex-col md:flex-row items-center justify-between group transition-all duration-300 gap-6 overflow-hidden relative cursor-pointer hover:border-blue-500/30 ${removingId === q.id ? 'opacity-0 -translate-y-2 scale-95' : ''}`}
+                  className={`glass p-6 rounded-[2rem] border-white/5 flex flex-col md:flex-row items-center justify-between group transition-all duration-300 gap-6 relative cursor-pointer hover:border-blue-500/30 ${removingId === q.id ? 'opacity-0 -translate-y-2 scale-95' : ''}`}
                 >
                   
                   <>
@@ -164,7 +244,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
                         <div>
                           <h4 className="text-xl font-black text-white">{q.title}</h4>
                           <p className="text-slate-500 text-xs font-black uppercase tracking-widest mt-1">
-                            {q.questions.length} Questions • {q.playCount} Plays
+                            {q.questions?.length || 0} Questions • {q.playCount} Plays
                           </p>
                           <div className="flex gap-2 mt-2 flex-wrap">
                             <span className="text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-widest bg-white/5 text-slate-300 border border-white/5 inline-flex items-center gap-1">
@@ -195,18 +275,58 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
                         >
                           <i className="bi bi-download"></i>
                         </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onEditQuiz(q); }}
-                          className="bg-white/5 text-slate-400 p-3 rounded-xl hover:bg-white/10 hover:text-white transition-all"
-                        >
-                          <i className="bi bi-pencil-fill"></i>
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setConfirmingQuiz(q); }}
-                          className="bg-rose-500/10 text-rose-500 p-3 rounded-xl hover:bg-rose-500 hover:text-white transition-all"
-                        >
-                          <i className="bi bi-trash3-fill"></i>
-                        </button>
+                        <div className="dropdown-container">
+                          <button 
+                            ref={dropdownButtonRef}
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleDropdownOpen(q.id, e.currentTarget);
+                            }}
+                            className="bg-white/5 text-slate-400 p-3 rounded-xl hover:bg-white/10 hover:text-white transition-all"
+                          >
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                        </div>
+
+                        {openDropdownId === q.id && dropdownPosition && createPortal(
+                          <div 
+                            className="dropdown-menu fixed w-48 bg-slate-900/95 backdrop-blur-sm rounded-xl border border-white/10 shadow-2xl z-[9999]"
+                            style={{
+                              top: `${dropdownPosition.top}px`,
+                              left: `${dropdownPosition.left}px`
+                            }}
+                          >
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); onEditQuiz(q); }}
+                              className="w-full px-4 py-3 text-left text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-3 rounded-t-xl"
+                            >
+                              <i className="bi bi-pencil-fill"></i>
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setRenamingQuiz(q); setNewTitle(q.title); }}
+                              className="w-full px-4 py-3 text-left text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-3"
+                            >
+                              <i className="bi bi-input-cursor-text"></i>
+                              Rename
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleClone(q); }}
+                              className="w-full px-4 py-3 text-left text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-3"
+                            >
+                              <i className="bi bi-files"></i>
+                              Clone
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setConfirmingQuiz(q); }}
+                              className="w-full px-4 py-3 text-left text-sm font-bold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-all flex items-center gap-3 rounded-b-xl"
+                            >
+                              <i className="bi bi-trash3-fill"></i>
+                              Delete
+                            </button>
+                          </div>,
+                          document.body
+                        )}
                       </div>
                     </>
                 </div>
@@ -241,6 +361,46 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-rose-600 text-white font-black uppercase text-[10px] tracking-widest hover:bg-rose-500 transition-all shadow-lg shadow-rose-600/30"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {renamingQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="glass w-full max-w-lg p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-blue-500/30 shadow-2xl shadow-blue-500/10">
+            <div className="flex items-start gap-3 sm:gap-4 mb-6">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/15 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <i className="bi bi-input-cursor-text text-lg sm:text-2xl"></i>
+              </div>
+              <div className="flex-1">
+                <p className="text-[9px] sm:text-xs font-black uppercase tracking-[0.3em] text-blue-300 mb-1 sm:mb-2">Rename Quiz</p>
+                <h4 className="text-lg sm:text-xl font-black text-white mb-3">"{renamingQuiz.title}"</h4>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-all"
+                  placeholder="Enter new title"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+              <button 
+                onClick={() => { setRenamingQuiz(null); setNewTitle(''); }}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/5 text-slate-200 font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleRename}
+                disabled={!newTitle.trim()}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Rename
               </button>
             </div>
           </div>

@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
             <img 
               src={user.profilePicture || generateAvatarUrl(user.username)}
               alt={user.username}
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover border border-white/10"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-contain border border-white/10 bg-white/5"
             />
           </Link>
         ) : (
@@ -168,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
                 <img 
                   src={user.profilePicture || generateAvatarUrl(user.username)}
                   alt={user.username}
-                  className="w-12 h-12 rounded-xl object-cover border border-white/10"
+                  className="w-12 h-12 rounded-xl object-contain border border-white/10 bg-white/5"
                 />
                 <div className="flex flex-col">
                   <span className="text-white font-black text-sm">{user.username}</span>

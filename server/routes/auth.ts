@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
-import { generateToken, requireAuth } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 import { isValidUsername } from '../middleware/inputValidation';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
 const meRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs for this route
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 1000, // limit each IP to 1000 requests per hour for this route
+  skip: (req) => {
+    // Skip rate limiting for authenticated users
+    return !!(req as any).session?.userId;
+  }
 });
 
 // Extend session type
@@ -69,13 +73,10 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    // Set session
+    // Set session (httpOnly cookie is set automatically)
     req.session.userId = user.id;
 
-    // Generate JWT token
-    const token = generateToken(user.id, user.username);
-
-    res.json({ user, token });
+    res.json({ user });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ error: 'Failed to register' });
@@ -107,11 +108,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Set session
+    // Set session (httpOnly cookie is set automatically)
     req.session.userId = user.id;
-
-    // Generate JWT token
-    const token = generateToken(user.id, user.username);
 
     res.json({
       user: {
@@ -124,8 +122,7 @@ router.post('/login', async (req, res) => {
         profileVisibility: user.profileVisibility,
         showQuizStats: user.showQuizStats,
         anonymousMode: user.anonymousMode
-      },
-      token
+      }
     });
   } catch (error) {
     console.error('Login error:', error);

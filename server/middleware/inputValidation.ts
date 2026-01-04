@@ -38,17 +38,29 @@ function sanitizeObject(obj: any, depth = 0): void {
   // Prevent deep object traversal
   if (depth > 10) return;
 
+  // Fields that contain large data (like images) should not be truncated
+  const largeDataFields = ['profilePicture', 'imageData', 'base64'];
+
   Object.keys(obj).forEach(key => {
     const value = obj[key];
+    const isLargeDataField = largeDataFields.includes(key);
 
     if (typeof value === 'string') {
-      // Trim whitespace and limit length
-      obj[key] = value.trim().substring(0, 5000);
+      // Trim whitespace - skip length limit for large data fields like profile pictures
+      if (isLargeDataField) {
+        obj[key] = value.trim();
+      } else {
+        obj[key] = value.trim().substring(0, 5000);
+      }
     } else if (Array.isArray(value)) {
       // Sanitize array items
       value.forEach((item, index) => {
         if (typeof item === 'string') {
-          value[index] = item.trim().substring(0, 5000);
+          if (isLargeDataField) {
+            value[index] = item.trim();
+          } else {
+            value[index] = item.trim().substring(0, 5000);
+          }
         } else if (typeof item === 'object' && item !== null) {
           sanitizeObject(item, depth + 1);
         }

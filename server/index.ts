@@ -57,7 +57,7 @@ app.use(validatePagination);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'quizly-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -66,12 +66,21 @@ app.use(session({
 }));
 
 // CSRF protection middleware
-const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
+const csrfProtection = csrf({ cookie: false });
 
-// Endpoint to provide CSRF token to clients
-app.get('/api/csrf-token', (req, res) => {
+// Apply CSRF to the token endpoint so it can generate tokens
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
   res.json({ csrfToken: (req as any).csrfToken() });
+});
+
+// Apply CSRF protection to all other routes except safe methods
+app.use((req, res, next) => {
+  // Skip CSRF for safe methods
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+  // Apply CSRF protection to POST, PUT, DELETE, PATCH
+  csrfProtection(req, res, next);
 });
 
 // Routes

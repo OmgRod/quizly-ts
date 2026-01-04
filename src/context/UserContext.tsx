@@ -9,6 +9,7 @@ interface UserContextType {
   register: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -18,49 +19,54 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
+    // Try to restore session on app load
+    const restoreSession = async () => {
       try {
+        // Attempt to fetch current user from session
+        // If session is valid, this succeeds. If not, it throws 401
         const response = await authAPI.getCurrentUser();
         setUser(response.data.user);
       } catch (error) {
-        // Token is invalid or expired
-        localStorage.removeItem('authToken');
+        // No valid session - user is not authenticated
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    restoreSession();
   }, []);
 
   const login = async (username: string, password: string) => {
+    // Login creates an httpOnly session cookie automatically
     const response = await authAPI.login(username, password);
     setUser(response.data.user);
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-    }
+    // No JWT token storage needed - session is handled by the browser
   };
 
   const register = async (username: string, password: string) => {
+    // Register creates an httpOnly session cookie automatically
     const response = await authAPI.register(username, password);
     setUser(response.data.user);
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-    }
+    // No JWT token storage needed - session is handled by the browser
   };
 
   const logout = async () => {
+    // Logout destroys the session on the server
     await authAPI.logout();
-    localStorage.removeItem('authToken');
     setUser(null);
+  };
+
+  const refreshUser = async () => {
+    // Refresh user data from current session
+    try {
+      const response = await authAPI.getCurrentUser();
+      setUser(response.data.user);
+    } catch (error) {
+      // Session invalid
+      setUser(null);
+      throw error;
+    }
   };
 
   const updateUser = async (updatedUser: User) => {
@@ -80,7 +86,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <UserContext.Provider value={{ user, loading, login, register, logout, updateUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

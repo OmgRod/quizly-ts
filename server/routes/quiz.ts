@@ -7,8 +7,12 @@ import rateLimit from 'express-rate-limit';
 
 // Rate limiter for AI endpoints to prevent abuse / DoS
 const aiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP/user to 50 AI requests per window
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 500, // limit each IP/user to 500 AI requests per hour
+  skip: (req) => {
+    // Skip rate limiting for authenticated users
+    return !!(req as any).session?.userId;
+  },
   standardHeaders: true,
   legacyHeaders: false
 });

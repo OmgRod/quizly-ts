@@ -8,8 +8,12 @@ import rateLimit from 'express-rate-limit';
 const router = Router();
 
 const profileUpdateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // limit each IP to 30 profile update requests per windowMs
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 500, // limit each IP to 500 profile update requests per hour
+  skip: (req) => {
+    // Skip rate limiting for authenticated users
+    return !!(req as any).session?.userId;
+  },
   standardHeaders: true,
   legacyHeaders: false
 });

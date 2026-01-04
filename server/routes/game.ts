@@ -21,8 +21,12 @@ const isValidPIN = (pin: string): boolean => /^\d{6,8}$/.test(pin);
 const router = Router();
 
 const createGameLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10, // limit each IP to 10 create requests per windowMs
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 500, // limit each IP to 500 create requests per hour
+  skip: (req) => {
+    // Skip rate limiting for authenticated users
+    return !!(req as any).session?.userId;
+  },
   standardHeaders: true,
   legacyHeaders: false
 });

@@ -21,8 +21,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
   const [profilePicture, setProfilePicture] = useState(user.profilePicture || generateAvatarUrl(user.username));
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [profileVisibility, setProfileVisibility] = useState(user.profileVisibility ?? true);
   const [showQuizStats, setShowQuizStats] = useState(user.showQuizStats ?? true);
   const [anonymousMode, setAnonymousMode] = useState(user.anonymousMode ?? false);
@@ -33,19 +31,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
     
     // Validate username format before sending to server
     if (username && !/^[a-zA-Z0-9]{3,32}$/.test(username)) {
-      setError("Username must be alphanumeric only and between 3-32 characters");
+      toast.error("Username must be alphanumeric only and between 3-32 characters");
       setLoading(false);
       return;
     }
 
     // Validate password confirmation if password is being changed
     if (password && password !== confirmNewPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
@@ -66,11 +62,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
 
     try {
       await onUpdate(updateData);
-      setSuccess("Account updated successfully.");
+      toast.success("Account updated successfully");
       setPassword("");
       setConfirmNewPassword("");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to update account.");
+      toast.error(err.response?.data?.error || "Failed to update account");
     } finally {
       setLoading(false);
     }
@@ -82,9 +78,18 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
       const file = e.target.files?.[0];
       if (!file) return;
 
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be smaller than 5MB');
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        e.target.value = '';
+        return;
+      }
+
+      // Check file size (limit to 2MB for better performance)
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        toast.error(`Image must be smaller than 2MB. Your image is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+        e.target.value = '';
         return;
       }
 
@@ -92,21 +97,95 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
       reader.onload = (event) => {
         try {
           const dataUrl = event.target?.result as string;
-          setProfilePicture(dataUrl);
-          setError('');
+          
+          // Create an image element to check dimensions
+          const img = new Image();
+          img.onload = () => {
+            const maxDimension = 2048;
+            const minDimension = 100;
+            
+            // Check if image is too small
+            if (img.width < minDimension || img.height < minDimension) {
+              toast.error(`Image is too small. Minimum size is ${minDimension}x${minDimension}px`);
+              e.target.value = '';
+              return;
+            }
+            
+            // Check if image needs resizing
+            if (img.width > maxDimension || img.height > maxDimension) {
+              // Create canvas to resize image
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              
+              if (!ctx) {
+                toast.error('Failed to process image');
+                return;
+              }
+              
+              // Calculate new dimensions (maintain aspect ratio)
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > height) {
+                if (width > maxDimension) {
+                  height = (height * maxDimension) / width;
+                  width = maxDimension;
+                }
+              } else {
+                if (height > maxDimension) {
+                  width = (width * maxDimension) / height;
+                  height = maxDimension;
+                }
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              
+              // Draw resized image
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Convert to data URL with quality adjustment
+              const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+              
+              // Check if resized image is still too large
+              const resizedSize = resizedDataUrl.length * 0.75; // Approximate size in bytes
+              if (resizedSize > maxSize) {
+                toast.error('Image is too large even after compression. Please use a smaller image.');
+                e.target.value = '';
+                return;
+              }
+              
+              setProfilePicture(resizedDataUrl);
+              toast.success(`Image resized from ${img.width}x${img.height} to ${Math.round(width)}x${Math.round(height)}`);
+            } else {
+              // Image is within acceptable dimensions
+              setProfilePicture(dataUrl);
+              toast.success('Profile picture uploaded successfully');
+            }
+          };
+          
+          img.onerror = () => {
+            toast.error('Failed to load image');
+            e.target.value = '';
+          };
+          
+          img.src = dataUrl;
         } catch (err) {
           console.error('File processing error:', err);
-          setError('Failed to read image file');
+          toast.error('Failed to read image file');
+          e.target.value = '';
         }
       };
       reader.onerror = () => {
         console.error('FileReader error');
-        setError('Failed to read image file');
+        toast.error('Failed to read image file');
+        e.target.value = '';
       };
       reader.readAsDataURL(file);
     } catch (err) {
       console.error('Upload handler error:', err);
-      setError('Failed to process image');
+      toast.error('Failed to process image');
+      e.target.value = '';
     }
   };
 
@@ -241,16 +320,24 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Profile Picture</label>
               <div className="flex items-center gap-6">
-                <img 
-                  src={profilePicture}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-2xl object-cover border-2 border-blue-500/30"
-                />
-                <div className="flex-1">
+                <div className="relative">
+                  <img 
+                    src={profilePicture}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-2xl object-contain border-2 border-blue-500/30 bg-white/5"
+                  />
+                  {profilePicture !== (user.profilePicture || generateAvatarUrl(user.username)) && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <i className="bi bi-check-lg text-white text-xs"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
                   <label className="flex items-center justify-center w-full px-6 py-4 bg-white/5 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/10 hover:border-blue-500/50 transition-all group">
                     <div className="text-center">
                       <i className="bi bi-cloud-upload text-2xl text-slate-500 group-hover:text-blue-400 mb-2 block"></i>
                       <span className="text-xs font-bold text-slate-500 group-hover:text-white uppercase tracking-widest">Upload Image</span>
+                      <p className="text-[10px] text-slate-600 mt-1">Max 2MB • Min 100x100px</p>
                     </div>
                     <input 
                       type="file" 
@@ -259,6 +346,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
                       className="hidden"
                     />
                   </label>
+                  <p className="text-xs text-slate-500">
+                    Square images work best.
+                  </p>
                 </div>
               </div>
             </div>
@@ -302,9 +392,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
                 )}
               </div>
             )}
-
-            {error && <p className="text-rose-500 text-xs font-black uppercase text-center animate-pulse">{error}</p>}
-            {success && <p className="text-emerald-500 text-xs font-black uppercase text-center">{success}</p>}
 
             <button 
               type="submit"
