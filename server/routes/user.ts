@@ -37,10 +37,15 @@ router.post('/logout-all', requireAuth, async (req, res) => {
         console.error('Session store error:', err);
         return res.status(500).json({ error: 'Failed to access session store' });
       }
+      // Type guard: only handle object form
+      if (Array.isArray(sessions)) {
+        // Unexpected: session store returned array, cannot process
+        return res.status(500).json({ error: 'Session store returned unexpected format' });
+      }
       let count = 0;
       for (const sid in sessions) {
         const s = sessions[sid];
-        if (s.userId === userId && sid !== req.sessionID) {
+        if (s && s.userId === userId && sid !== req.sessionID) {
           sessionStore.destroy(sid, (destroyErr) => {
             if (destroyErr) {
               console.error('Failed to destroy session:', sid, destroyErr);
