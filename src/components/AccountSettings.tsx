@@ -103,6 +103,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     setUploadProgress({ current: 0, total: files.length });
     let successCount = 0;
     let failedCount = 0;
+    let skippedCount = 0;
     const failedFiles: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -115,8 +116,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
           console.error(`Failed to import ${file.name}:`, result.error);
         } else if (result.quiz) {
           try {
-            await quizAPI.create(result.quiz);
-            successCount++;
+            // Check if a quiz with this name already exists
+            const existingQuizzes = await quizAPI.list();
+            const isDuplicate = existingQuizzes.some((q: any) => q.title === result.quiz!.title);
+            
+            if (isDuplicate) {
+              skippedCount++;
+              console.log(`Skipped ${file.name}: Quiz with name "${result.quiz.title}" already exists`);
+            } else {
+              await quizAPI.create(result.quiz);
+              successCount++;
+            }
           } catch (err: any) {
             failedCount++;
             const errMsg = err.response?.data?.error || err.message || 'Failed to save quiz';
@@ -137,6 +147,10 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
 
     if (successCount > 0) {
       toast.success(`Uploaded ${successCount} quiz${successCount !== 1 ? 'zes' : ''}`);
+    }
+
+    if (skippedCount > 0) {
+      toast('Skipped ' + skippedCount + ' duplicate quiz' + (skippedCount !== 1 ? 'zes' : ''));
     }
 
     if (failedCount > 0) {
