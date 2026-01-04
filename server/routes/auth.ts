@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
     });
     
     const usernameLower = username.toLowerCase();
-    const existingUser = allUsers.find(u => u.username.toLowerCase() === usernameLower);
+    const existingUser = allUsers.find((u: any) => u.username.toLowerCase() === usernameLower);
 
     if (existingUser) {
       return res.status(400).json({ error: 'Username already taken' });
@@ -125,7 +125,7 @@ router.post('/login', async (req, res) => {
     });
     
     const usernameLower = username.toLowerCase();
-    const user = allUsers.find(u => u.username.toLowerCase() === usernameLower);
+    const user = allUsers.find((u: any) => u.username.toLowerCase() === usernameLower);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });

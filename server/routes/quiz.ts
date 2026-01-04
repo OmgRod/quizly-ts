@@ -449,7 +449,7 @@ router.get('/', async (req, res) => {
     });
 
     // Deserialize JSON strings back to objects
-    const deserializedQuizzes = quizzes.map(quiz => ({
+    const deserializedQuizzes = quizzes.map((quiz: any) => ({
       ...quiz,
       authorName: quiz.user.username,
       authorProfilePicture: quiz.user.profilePicture,

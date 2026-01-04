@@ -85,10 +85,6 @@ const CreatePage: React.FC = () => {
               <div className="space-y-3 text-left">
                 <div className="flex items-start gap-3">
                   <i className="bi bi-check-circle-fill text-purple-400 text-lg mt-0.5"></i>
-                  <div>
-                    <p className="text-white font-bold text-sm">Quick & Easy</p>
-                    <p className="text-slate-500 text-xs">Generate quizzes in seconds</p>
-                  </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <i className="bi bi-check-circle-fill text-purple-400 text-lg mt-0.5"></i>
@@ -228,9 +224,7 @@ const CreatePage: React.FC = () => {
         </div>
       </div>
     </div>
-      </div>
-    </>
-  );
+    </>);
 };
 
 export default CreatePage;
