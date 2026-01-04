@@ -6,7 +6,7 @@ This application has been refactored to use a full server-side architecture with
 
 ### Backend (Server)
 - **Framework**: Express.js with TypeScript
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: SQLite with Prisma ORM
 - **Real-time**: Socket.IO for multiplayer functionality
 - **Authentication**: Express sessions with bcrypt password hashing
 
@@ -53,14 +53,13 @@ npm install
 
 ### 2. Database Setup
 
-Create a PostgreSQL database and update the `.env` file:
+The application uses SQLite as the database. Create a `.env` file:
 
 ```bash
 cp .env.example .env
-# Edit .env and set your DATABASE_URL
 ```
 
-Then run Prisma migrations:
+Then generate the Prisma client and run migrations:
 
 ```bash
 npm run prisma:generate
@@ -72,7 +71,7 @@ npm run prisma:migrate
 Create a `.env` file in the root directory:
 
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/quizly"
+DATABASE_URL="file:./dev.db"
 SESSION_SECRET="your-secret-key-here"
 PORT=3001
 CLIENT_URL="http://localhost:5173"
@@ -157,13 +156,13 @@ npm run build
 
 ## Key Changes from Original
 
-1. **No more localStorage/sessionStorage for data persistence** - All data is stored in PostgreSQL
+1. **No more localStorage/sessionStorage for data persistence** - All data is stored in SQLite
 2. **Proper routing** - React Router instead of manual state-based navigation
 3. **Server-side sessions** - Secure authentication with express-session
 4. **API-first architecture** - All operations go through REST API
 5. **Separate pages** - Each route has its own page component
 6. **Type-safe API client** - Axios with TypeScript
-7. **Real database** - PostgreSQL with Prisma ORM
+7. **Real database** - SQLite with Prisma ORM
 8. **Socket.IO on server** - Real-time multiplayer properly handled server-side
 
 ## Development Tips
@@ -178,9 +177,10 @@ npm run build
 
 For production:
 
-1. Set up a PostgreSQL database
+1. Set up your database (SQLite file or migrate to PostgreSQL)
 2. Set environment variables
-3. Run migrations: `npm run prisma:migrate`
-4. Build: `npm run build`
-5. Deploy server code to your hosting service
-6. Deploy client build to a static host or serve from Express
+3. Generate Prisma client: `npm run prisma:generate`
+4. Run migrations: `npm run prisma:migrate`
+5. Build: `npm run build`
+6. Deploy server code to your hosting service
+7. Deploy client build to a static host or serve from Express
