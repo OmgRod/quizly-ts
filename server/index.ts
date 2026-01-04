@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import session from 'express-session';
 import cors from 'cors';
+import csrf from 'csurf';
 import authRoutes from './routes/auth';
 import quizRoutes from './routes/quiz';
 import gameRoutes from './routes/game';
@@ -63,6 +64,15 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
   }
 }));
+
+// CSRF protection middleware
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
+
+// Endpoint to provide CSRF token to clients
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: (req as any).csrfToken() });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
