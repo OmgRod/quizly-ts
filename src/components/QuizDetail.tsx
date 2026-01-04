@@ -39,7 +39,7 @@ interface QuizDetailProps {
 const QuizDetail: React.FC<QuizDetailProps> = ({ onStartQuiz, user }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const handleError = useErrorHandler();
+  const { handleError } = useErrorHandler();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
@@ -64,15 +64,15 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ onStartQuiz, user }) => {
       } catch (error: any) {
         console.error('Failed to load quiz:', error);
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          errorHandler.handleError(404, 'Quiz not found');
+          handleError(404, 'Quiz not found');
         } else {
-          errorHandler.handleError(500, 'Failed to load quiz');
+          handleError(500, 'Failed to load quiz');
         }
       } finally {
         setLoading(false);
       }
     };
-    const { handleError } = useErrorHandler();
+    // ...existing code...
     loadQuiz();
   }, [id]);
 

@@ -50,7 +50,7 @@ const Explore: React.FC<ExploreProps> = ({ onStartQuiz, onStartAI, onManualCreat
         
         // Fetch quizzes for each genre
         for (const genre of genres) {
-          const response = await quizAPI.getAll({ genre, sort: 'trending' });
+          const response = await quizAPI.getAll({ genre });
           const quizzesForGenre = response.data.quizzes.slice(0, 10); // Limit to 10 per genre
           if (quizzesForGenre.length > 0) {
             genreMap[genre] = quizzesForGenre;

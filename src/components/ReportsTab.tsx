@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 import { Search, ChevronLeft, ChevronRight, Flag, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -99,7 +99,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ isActive }) => {
 
   const handleStatusUpdate = async (reportId: string, newStatus: string, action?: string) => {
     try {
-      const res = await axios.patch(`/api/reports/${reportId}/status`, {
+      const res = await api.patch(`/reports/${reportId}/status`, {
         status: newStatus,
         action
       });
