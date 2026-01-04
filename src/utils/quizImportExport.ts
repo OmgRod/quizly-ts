@@ -109,9 +109,26 @@ export const validateQuizJSON = (data: any): { valid: boolean; quiz?: Quiz; erro
         // No validation needed
       } else if (typesRequiringOptions.includes(q.type)) {
         // For other types that need options, check for correct answer
-        const correctAnswer = q.correctAnswer !== undefined ? q.correctAnswer : (q.correctIndices?.[0] ?? null);
-        if (correctAnswer === null || typeof correctAnswer !== 'number' || correctAnswer < 0 || correctAnswer >= q.options.length) {
+        // Support both correctAnswer (single) and correctIndices (multiple)
+        const hasCorrectAnswer = q.correctAnswer !== undefined && q.correctAnswer !== null;
+        const hasCorrectIndices = Array.isArray(q.correctIndices) && q.correctIndices.length > 0;
+        
+        if (!hasCorrectAnswer && !hasCorrectIndices) {
+          return { valid: false, error: `Question ${i + 1}: Must have a correct answer or correct indices` };
+        }
+
+        // Validate correctAnswer if present
+        if (hasCorrectAnswer && (typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer >= q.options.length)) {
           return { valid: false, error: `Question ${i + 1}: Invalid correct answer index` };
+        }
+
+        // Validate correctIndices if present
+        if (hasCorrectIndices) {
+          for (const idx of q.correctIndices) {
+            if (typeof idx !== 'number' || idx < 0 || idx >= q.options.length) {
+              return { valid: false, error: `Question ${i + 1}: Invalid index in correct answers` };
+            }
+          }
         }
       } else if (q.type === 'INPUT') {
         // INPUT type should have correctTexts

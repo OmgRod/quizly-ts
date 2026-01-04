@@ -112,18 +112,22 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
         if (result.error) {
           failedCount++;
           failedFiles.push(`${file.name}: ${result.error}`);
+          console.error(`Failed to import ${file.name}:`, result.error);
         } else if (result.quiz) {
           try {
             await quizAPI.create(result.quiz);
             successCount++;
           } catch (err: any) {
             failedCount++;
-            failedFiles.push(`${file.name}: Failed to save quiz`);
+            const errMsg = err.response?.data?.error || err.message || 'Failed to save quiz';
+            failedFiles.push(`${file.name}: ${errMsg}`);
+            console.error(`Failed to save ${file.name}:`, err);
           }
         }
       } catch (err) {
         failedCount++;
         failedFiles.push(`${file.name}: Failed to read file`);
+        console.error(`Failed to read ${file.name}:`, err);
       }
       setUploadProgress({ current: i + 1, total: files.length });
     }
@@ -136,10 +140,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     }
 
     if (failedCount > 0) {
-      const failureMessage = failedFiles.length > 3 
-        ? `${failedCount} quizzes failed to upload`
+      const failureMessage = failedFiles.length > 5 
+        ? `${failedCount} quizzes failed to upload (check console for details)`
         : failedFiles.join('\n');
       toast.error(failureMessage);
+      console.log('Failed files:', failedFiles);
     }
 
     // Reset file input
