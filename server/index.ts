@@ -68,9 +68,14 @@ app.use(session({
 // CSRF protection middleware
 const csrfProtection = csrf({ cookie: false });
 
-// Apply CSRF to the token endpoint so it can generate tokens
+// GET endpoint to fetch CSRF token (no CSRF protection needed for GET)
 app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: (req as any).csrfToken() });
+  try {
+    res.json({ csrfToken: (req as any).csrfToken() });
+  } catch (error) {
+    console.error('CSRF token generation error:', error);
+    res.status(500).json({ error: 'Failed to generate CSRF token' });
+  }
 });
 
 // Apply CSRF protection to all other routes except safe methods
