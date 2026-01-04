@@ -109,7 +109,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
     let existingQuizzes: any[] = [];
     try {
       const response = await quizAPI.getAll({ userId: user.id });
-      existingQuizzes = Array.isArray(response) ? response : (response?.data || []);
+      existingQuizzes = response.data?.quizzes || [];
     } catch (err) {
       console.warn('Could not fetch existing quizzes for duplicate check:', err);
     }
