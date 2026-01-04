@@ -131,7 +131,8 @@ app.get('/api/health', (req, res) => {
 
 // Serve index.html for client-side routing in production
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
+  // Use a regex to match all routes except those starting with /api
+  app.get(/^((?!\/api).)*$/, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
   });
 }
