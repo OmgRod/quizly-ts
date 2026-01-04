@@ -91,6 +91,7 @@ const Browse: React.FC<BrowseProps> = ({ onStartQuiz }) => {
   const displayedGenres = showAllGenres ? genres : genres.slice(0, INITIAL_GENRES_SHOWN);
 
   return (
+    <>
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_120%,#1e1b4b_0%,#020617_60%)]"></div>
@@ -256,8 +257,9 @@ const Browse: React.FC<BrowseProps> = ({ onStartQuiz }) => {
         </section>
       </div>
       
-      <Footer />
     </div>
+    <Footer />
+    </>
   );
 };
 

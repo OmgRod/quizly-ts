@@ -22,6 +22,7 @@ import ErrorPage from './pages/ErrorPage';
 import Header from './components/Header';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import LegalUpdatePopup from './components/LegalUpdatePopup';
 
 // 404 Not Found wrapper
 const NotFoundPage: React.FC = () => {
@@ -43,11 +44,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Layout wrapper
 const Layout: React.FC<{ children: React.ReactNode; hideHeader?: boolean }> = ({ children, hideHeader }) => {
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
   
   return (
     <div className="min-h-screen relative flex flex-col bg-slate-950">
       {!hideHeader && <Header user={user} />}
+      {user && <LegalUpdatePopup user={user} onAccept={refreshUser} />}
       <main className={`flex-1 ${!hideHeader ? "pt-24" : ""}`}>
         {children}
       </main>

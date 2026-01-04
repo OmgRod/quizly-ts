@@ -20,6 +20,8 @@ model User {
   anonymousMode Boolean @default(false)
   isAdmin     Boolean  @default(false)
   isSuspended Boolean  @default(false)
+  acceptedTosVersion String? @default("1.0.0")
+  acceptedPrivacyVersion String? @default("1.0.0")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

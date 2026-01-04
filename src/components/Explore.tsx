@@ -84,6 +84,7 @@ const Explore: React.FC<ExploreProps> = ({ onStartQuiz, onStartAI, onManualCreat
   const genresWithQuizzes = Object.keys(quizzesByGenre) as QuizGenre[];
 
   return (
+    <>
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_120%,#1e1b4b_0%,#020617_60%)]"></div>
@@ -259,8 +260,9 @@ const Explore: React.FC<ExploreProps> = ({ onStartQuiz, onStartAI, onManualCreat
       </section>
     </div>
     
-    <Footer />
   </div>
+  <Footer />
+  </>
   );
 };
 

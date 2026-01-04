@@ -297,4 +297,25 @@ router.get('/:id/quizzes', async (req, res) => {
   }
 });
 
+// Accept legal updates
+router.post('/accept-legal', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { tosVersion, privacyVersion } = req.body;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        acceptedTosVersion: tosVersion,
+        acceptedPrivacyVersion: privacyVersion
+      }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Accept legal updates error:', error);
+    res.status(500).json({ error: 'Failed to save legal acceptance' });
+  }
+});
+
 export default router;

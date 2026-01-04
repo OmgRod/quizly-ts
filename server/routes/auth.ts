@@ -58,7 +58,9 @@ router.post('/register', async (req, res) => {
     const user = await prisma.user.create({
       data: {
         username,
-        password: hashedPassword
+        password: hashedPassword,
+        acceptedTosVersion: "1.0.0",
+        acceptedPrivacyVersion: "1.0.0"
       },
       select: {
         id: true,
@@ -71,7 +73,9 @@ router.post('/register', async (req, res) => {
         showQuizStats: true,
         anonymousMode: true,
         isAdmin: true,
-        isSuspended: true
+        isSuspended: true,
+        acceptedTosVersion: true,
+        acceptedPrivacyVersion: true
       }
     });
 
@@ -125,7 +129,9 @@ router.post('/login', async (req, res) => {
         showQuizStats: user.showQuizStats,
         anonymousMode: user.anonymousMode,
         isAdmin: user.isAdmin,
-        isSuspended: user.isSuspended
+        isSuspended: user.isSuspended,
+        acceptedTosVersion: user.acceptedTosVersion,
+        acceptedPrivacyVersion: user.acceptedPrivacyVersion
       }
     });
   } catch (error) {
@@ -160,7 +166,9 @@ router.get('/me', meRateLimiter, requireAuth, async (req, res) => {
         showQuizStats: true,
         anonymousMode: true,
         isAdmin: true,
-        isSuspended: true
+        isSuspended: true,
+        acceptedTosVersion: true,
+        acceptedPrivacyVersion: true
       }
     });
 

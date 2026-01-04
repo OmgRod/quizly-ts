@@ -17,7 +17,7 @@ const TermsOfService: React.FC = () => {
         <h1 className="text-4xl sm:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
           Terms of Service
         </h1>
-        <p className="text-slate-400 mb-12">Last Updated: January 3, 2026</p>
+        <p className="text-slate-400 mb-12">Last Updated: January 4, 2026</p>
 
         <div className="space-y-8 text-slate-300">
           <section>
@@ -85,7 +85,7 @@ const TermsOfService: React.FC = () => {
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">5. AI-Generated Content</h2>
             <p className="mb-4">
-              Quizly uses Google Gemini AI to generate quiz content. You acknowledge that:
+              Quizly uses AI technology (Google Gemini or Ollama depending on server configuration) to generate quiz content. You acknowledge that:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>AI-generated content may contain errors or inaccuracies</li>

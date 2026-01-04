@@ -166,7 +166,10 @@ export const userAPI = {
     api.get(`/user/${id}/quizzes`),
   
   getGlobalLeaderboard: (params?: { limit?: number; offset?: number; type?: 'xp' | 'coins' | 'points' }) => 
-    api.get('/user/leaderboard/global', { params })
+    api.get('/user/leaderboard/global', { params }),
+  
+  acceptLegalUpdates: (tosVersion: string, privacyVersion: string) =>
+    api.post('/user/accept-legal', { tosVersion, privacyVersion })
 };
 
 export default api;

@@ -92,6 +92,8 @@ export interface User {
   anonymousMode?: boolean;
   isAdmin?: boolean;
   isSuspended?: boolean;
+  acceptedTosVersion?: string;
+  acceptedPrivacyVersion?: string;
 }
 
 export interface Player {
