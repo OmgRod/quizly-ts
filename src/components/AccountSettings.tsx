@@ -50,15 +50,22 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdate, onDel
       return;
     }
     
+    const updateData: any = { 
+      username, 
+      password,
+      profileVisibility,
+      showQuizStats,
+      anonymousMode
+    };
+
+    // Only include profilePicture if it was actually changed
+    const originalPicture = user.profilePicture || generateAvatarUrl(user.username);
+    if (profilePicture !== originalPicture) {
+      updateData.profilePicture = profilePicture;
+    }
+
     try {
-      await onUpdate({ 
-        username, 
-        password,
-        profilePicture,
-        profileVisibility,
-        showQuizStats,
-        anonymousMode
-      });
+      await onUpdate(updateData);
       setSuccess("Account updated successfully.");
       setPassword("");
       setConfirmNewPassword("");
