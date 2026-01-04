@@ -4,6 +4,7 @@ import prisma from '../prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidUsername } from '../middleware/inputValidation.js';
 import rateLimit from 'express-rate-limit';
+import { CURRENT_TOS_VERSION, CURRENT_PRIVACY_VERSION } from '../constants/legalVersions.js';
 
 const router = Router();
 
@@ -59,8 +60,8 @@ router.post('/register', async (req, res) => {
       data: {
         username,
         password: hashedPassword,
-        acceptedTosVersion: "1.0.0",
-        acceptedPrivacyVersion: "1.0.0"
+        acceptedTosVersion: CURRENT_TOS_VERSION,
+        acceptedPrivacyVersion: CURRENT_PRIVACY_VERSION
       },
       select: {
         id: true,
