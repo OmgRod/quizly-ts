@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface AuthProps {
   onAuth: (username: string, password: string, isRegister: boolean) => Promise<void>;
@@ -13,9 +14,18 @@ const Auth: React.FC<AuthProps> = ({ onAuth, onBack, error: externalError }) => 
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   const handleAuth = async () => {
     if (!username || !password) return;
+    
+    // Check if Terms and Privacy are accepted when registering
+    if (isRegister && (!acceptedTerms || !acceptedPrivacy)) {
+      setError("You must accept the Terms of Service and Privacy Policy to create an account");
+      return;
+    }
+    
     setLoading(true);
     setError("");
 
@@ -77,6 +87,40 @@ const Auth: React.FC<AuthProps> = ({ onAuth, onBack, error: externalError }) => 
               className="w-full bg-white/5 border border-white/5 p-5 pl-14 rounded-2xl text-white font-bold text-lg focus:outline-none focus:border-blue-500/50 transition-all"
             />
           </div>
+          
+          {isRegister && (
+            <div className="space-y-3 text-sm">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-blue-500"
+                />
+                <span className="text-slate-400 group-hover:text-slate-300 transition-colors">
+                  I agree to the{' '}
+                  <Link to="/terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">
+                    Terms of Service
+                  </Link>
+                </span>
+              </label>
+              
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptedPrivacy}
+                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-blue-500"
+                />
+                <span className="text-slate-400 group-hover:text-slate-300 transition-colors">
+                  I agree to the{' '}
+                  <Link to="/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
+          )}
           
           {displayError && <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-black uppercase text-center">{displayError}</div>}
 

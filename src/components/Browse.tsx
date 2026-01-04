@@ -5,6 +5,7 @@ import { quizAPI } from '../api';
 import { Quiz, QuizGenre } from '../types';
 import { getGenreIcon } from '../utils/genre';
 import { generateAvatarUrl } from '../utils/avatar';
+import Footer from './Footer';
 
 interface BrowseProps {
   onStartQuiz: (q: Quiz, solo?: boolean) => void;
@@ -254,6 +255,8 @@ const Browse: React.FC<BrowseProps> = ({ onStartQuiz }) => {
           )}
         </section>
       </div>
+      
+      <Footer />
     </div>
   );
 };

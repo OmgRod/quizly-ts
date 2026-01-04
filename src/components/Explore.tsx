@@ -5,6 +5,7 @@ import { quizAPI } from '../api';
 import { Quiz, QuizGenre } from '../types';
 import { getGenreIcon } from '../utils/genre';
 import { generateAvatarUrl } from '../utils/avatar';
+import Footer from './Footer';
 
 interface ExploreProps {
   onStartQuiz: (q: Quiz, solo?: boolean) => void;
@@ -257,6 +258,8 @@ const Explore: React.FC<ExploreProps> = ({ onStartQuiz, onStartAI, onManualCreat
         )}
       </section>
     </div>
+    
+    <Footer />
   </div>
   );
 };

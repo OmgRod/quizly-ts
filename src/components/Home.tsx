@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { User } from '../types';
+import Footer from './Footer';
 
 interface HomeProps {
   user: User | null;
@@ -123,11 +124,7 @@ const Home: React.FC<HomeProps> = ({ user, onStart, onSolo, onJoin }) => {
         )}
       </div>
 
-      <div className="mt-20 flex items-center gap-4 text-slate-700 font-black text-[10px] uppercase tracking-[0.5em] opacity-40">
-        <span>EST. 2026</span>
-        <i className="bi bi-dot"></i>
-        <span>Quizly</span>
-      </div>
+      <Footer />
     </div>
   );
 };
