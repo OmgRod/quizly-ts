@@ -500,9 +500,9 @@ router.get('/:id', async (req, res) => {
     if (viewerId) {
       const viewer = await prisma.user.findUnique({
         where: { id: viewerId },
-        select: { isAdmin: true }
+        select: { adminRole: true }
       });
-      isAdmin = viewer?.isAdmin || false;
+      isAdmin = viewer?.adminRole === 'ADMIN';
     }
 
     const isOwner = viewerId && viewerId === quiz.userId;

@@ -288,7 +288,7 @@ router.put('/profile', profileUpdateLimiter, requireAuth, async (req, res) => {
         anonymousMode: true,
         showJoinDate: true,
         showLastOnline: true,
-        isAdmin: true,
+        adminRole: true,
         isSuspended: true,
         acceptedTosVersion: true,
         acceptedPrivacyVersion: true,

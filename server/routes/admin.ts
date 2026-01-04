@@ -189,7 +189,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
         totalPoints: true,
         xp: true,
         coins: true,
-        isAdmin: true,
+        adminRole: true,
         isSuspended: true,
         createdAt: true,
         updatedAt: true,
@@ -209,8 +209,8 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
     res.json({
       user: {
         ...user,
-        quizCount: user.quizzes.length,
-        sessionCount: user.sessions.length
+        quizCount: user.quizzes ? user.quizzes.length : 0,
+        sessionCount: user.sessions ? user.sessions.length : 0
       }
     });
   } catch (error) {
