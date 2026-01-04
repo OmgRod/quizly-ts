@@ -64,14 +64,15 @@ const QuizDetail: React.FC<QuizDetailProps> = ({ onStartQuiz, user }) => {
       } catch (error: any) {
         console.error('Failed to load quiz:', error);
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          handleError(404, 'Quiz not found');
+          errorHandler.handleError(404, 'Quiz not found');
         } else {
-          handleError(500, 'Failed to load quiz');
+          errorHandler.handleError(500, 'Failed to load quiz');
         }
       } finally {
         setLoading(false);
       }
     };
+    const { handleError } = useErrorHandler();
     loadQuiz();
   }, [id]);
 
