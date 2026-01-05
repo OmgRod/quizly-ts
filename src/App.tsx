@@ -33,14 +33,29 @@ const NotFoundPage: React.FC = () => {
 // Protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useUser();
-  
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="text-white">Loading...</div>
     </div>;
   }
-  
-  return user ? <>{children}</> : <Navigate to="/auth" replace />;
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (user.isSuspended) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="bg-red-900 text-white p-8 rounded-lg shadow-lg text-center">
+          <h2 className="text-2xl font-bold mb-2">Account Suspended</h2>
+          <p className="mb-4">Your account has been suspended. If you believe this is a mistake, please contact support.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };
 
 // Layout wrapper
@@ -60,7 +75,7 @@ const Layout: React.FC<{ children: React.ReactNode; hideHeader?: boolean }> = ({
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <UserProvider>
         <Toaster position="top-center" />
         <Routes>

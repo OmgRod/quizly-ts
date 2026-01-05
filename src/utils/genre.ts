@@ -2,7 +2,7 @@ import { QuizGenre } from '../types';
 
 export const genreIcons: Record<QuizGenre, string> = {
   All: 'bi-grid',
-  General: 'bi-app-indicator',
+  General: 'bi-app',
   Science: 'bi-flask',
   History: 'bi-bank',
   Technology: 'bi-cpu',

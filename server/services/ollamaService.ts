@@ -30,7 +30,7 @@ const timeoutDispatcher = new Agent({
 
 const ollama = new Ollama({
   host: OLLAMA_BASE_URL,
-  fetch: (url, init) => undiciFetch(url, { ...init, dispatcher: timeoutDispatcher })
+  fetch: (url, init) => (undiciFetch as any)(url, { ...init, dispatcher: timeoutDispatcher })
 });
 
 const QUIZ_GRAMMAR = `

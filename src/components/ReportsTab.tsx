@@ -237,16 +237,6 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ isActive }) => {
                     >
                       Delete Quiz & Resolve
                     </button>
-                    <button
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to delete this quiz?')) {
-                          await handleStatusUpdate(selectedReport.id, selectedReport.status, 'delete_quiz');
-                        }
-                      }}
-                      className="w-full px-4 py-2 bg-red-700 text-white rounded-lg font-semibold hover:bg-red-800 transition mb-2"
-                    >
-                      Delete Quiz
-                    </button>
                   </>
                 ) : null
               )

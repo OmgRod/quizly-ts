@@ -3,19 +3,20 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import session from 'express-session';
+import SQLiteStore from 'connect-sqlite3';
 import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import authRoutes from './routes/auth.js';
-import quizRoutes from './routes/quiz.js';
-import gameRoutes from './routes/game.js';
-import userRoutes from './routes/user.js';
-import adminRoutes from './routes/admin.js';
-import reportsRoutes from './routes/reports.js';
-import { setupSocketHandlers } from './socket.js';
-import { validateInput, validatePagination } from './middleware/inputValidation.js';
-import prisma from './prisma.js';
+import authRoutes from './routes/auth.ts';
+import quizRoutes from './routes/quiz.ts';
+import gameRoutes from './routes/game.ts';
+import userRoutes from './routes/user.ts';
+import adminRoutes from './routes/admin.ts';
+import reportsRoutes from './routes/reports.ts';
+import { setupSocketHandlers } from './socket.ts';
+import { validateInput, validatePagination } from './middleware/inputValidation.ts';
+import prisma from './prisma.ts';
 
 // Create __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -73,11 +74,12 @@ app.use(validatePagination);
 
 // Session middleware
 app.use(session({
+  store: new (SQLiteStore(session))({ db: 'sessions.sqlite', dir: './server' }),
   secret: process.env.SESSION_SECRET || 'quizly-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Always false for local dev (HTTP)
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     // domain: process.env.NODE_ENV === 'production' ? '.quizly.omgrod.me' : undefined
@@ -127,6 +129,57 @@ app.use('/api/reports', reportsRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Sitemap endpoint for Google indexing
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    // Get all public quizzes
+    const quizzes = await prisma.quiz.findMany({
+      where: { visibility: 'PUBLIC' },
+      select: { id: true, updatedAt: true },
+    });
+    // Get all public user profiles
+    const users = await prisma.user.findMany({
+      where: { profileVisibility: true },
+      select: { id: true, updatedAt: true },
+    });
+
+    const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    let urls = [];
+    // Homepage
+    urls.push({ loc: `${baseUrl}/`, lastmod: new Date().toISOString() });
+    // Quizzes
+    quizzes.forEach(q => {
+      urls.push({
+        loc: `${baseUrl}/quiz/${q.id}`,
+        lastmod: q.updatedAt.toISOString(),
+      });
+    });
+    // Users
+    users.forEach(u => {
+      urls.push({
+        loc: `${baseUrl}/user/${u.id}`,
+        lastmod: u.updatedAt ? u.updatedAt.toISOString() : undefined,
+      });
+    });
+
+    // Build XML
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+      urls.map(u =>
+        `  <url>\n` +
+        `    <loc>${u.loc}</loc>\n` +
+        (u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>\n` : '') +
+        `  </url>`
+      ).join('\n') +
+      `\n</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    console.error('Sitemap error:', err);
+    res.status(500).send('Error generating sitemap');
+  }
 });
 
 // Serve index.html for client-side routing in production

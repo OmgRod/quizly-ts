@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import prisma from '../prisma.js';
+import prisma from '../prisma.ts';
 import { requireAdmin } from '../middleware/admin.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -273,11 +273,20 @@ router.post('/users/:id/suspend', requireAdmin, async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      select: { adminRole: true, isSuspended: true, id: true, username: true }
     });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Prevent moderators from suspending other moderators or admins
+    if (
+      req.adminRole === 'MODERATOR' &&
+      (user.adminRole === 'MODERATOR' || user.adminRole === 'ADMIN')
+    ) {
+      return res.status(403).json({ error: 'Moderators cannot suspend other moderators or admins.' });
     }
 
     const updated = await prisma.user.update({

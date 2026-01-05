@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import prisma from '../prisma.ts';
 
 // Extend Express Request to include userId
 declare global {
@@ -9,13 +10,19 @@ declare global {
   }
 }
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  // Check session cookie for authentication
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   if (req.session.userId) {
     req.userId = req.session.userId;
-    return next();
+    try {
+      const user = await prisma.user.findUnique({ where: { id: req.session.userId } });
+      if (user?.isSuspended) {
+        return res.status(403).json({ error: 'Your account is suspended.', code: 'ERR_SUSPENDED' });
+      }
+      return next();
+    } catch (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+  } else {
+    return res.status(401).json({ error: 'Authentication required' });
   }
-
-  // No session - user is not authenticated
-  return res.status(401).json({ error: 'Authentication required' });
 };

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { Title, Meta } from 'react-head';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { parseQuizFile } from '../utils/quizImportExport';
@@ -28,15 +28,12 @@ const CreatePage: React.FC = () => {
 
     try {
       const { quiz, error } = await parseQuizFile(file);
-      
       if (error) {
         toast.error(`Import failed: ${error}`);
         return;
       }
-
       if (quiz) {
         toast.success(`Loaded "${quiz.title}"! Redirecting to editor...`);
-        // Navigate to editor with the imported quiz
         setTimeout(() => {
           navigate('/create/manual', { state: { quiz } });
         }, 600);
@@ -48,24 +45,17 @@ const CreatePage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Create a Quiz | Quizly</title>
-        <meta name="description" content="Create your own quiz with AI or manual editor. Import, edit, and share quizzes easily on Quizly." />
-        <link rel="canonical" href="https://yourdomain.com/create" />
-      </Helmet>
-      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
-      <div className="max-w-6xl w-full space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-6xl font-black text-white tracking-tighter uppercase">
-            Create Quiz
-          </h1>
-          <p className="text-slate-500 text-lg font-medium">
-            Choose your creation method
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* AI Creation */}
+      <Title>Quizly - Create Quiz</Title>
+      <Meta name="description" content="Create a new quiz on Quizly!" />
+      <div className="container mx-auto py-12">
+        <h1 className="text-6xl font-black text-white tracking-tighter uppercase">
+          Create Quiz
+        </h1>
+        <p className="text-slate-500 text-lg font-medium">
+          Choose your creation method
+        </p>
+        <div className="grid md:grid-cols-3 gap-6 mt-8">
+          {/* AI Generator */}
           <button
             onClick={() => navigate('/create/ai')}
             className="glass p-10 rounded-[2.5rem] border-white/10 hover:border-purple-500/30 transition-all duration-300 ease-out group active:scale-95 hover:shadow-2xl hover:shadow-purple-500/20"
@@ -85,9 +75,6 @@ const CreatePage: React.FC = () => {
               <div className="space-y-3 text-left">
                 <div className="flex items-start gap-3">
                   <i className="bi bi-check-circle-fill text-purple-400 text-lg mt-0.5"></i>
-                </div>
-                <div className="flex items-start gap-3">
-                  <i className="bi bi-check-circle-fill text-purple-400 text-lg mt-0.5"></i>
                   <div>
                     <p className="text-white font-bold text-sm">Smart Questions</p>
                     <p className="text-slate-500 text-xs">AI generates intelligent content</p>
@@ -100,6 +87,13 @@ const CreatePage: React.FC = () => {
                     <p className="text-slate-500 text-xs">Edit after generation</p>
                   </div>
                 </div>
+                <div className="flex items-start gap-3">
+                  <i className="bi bi-check-circle-fill text-purple-400 text-lg mt-0.5"></i>
+                  <div>
+                    <p className="text-white font-bold text-sm">Edit after generation</p>
+                    <p className="text-slate-500 text-xs">Modify questions as needed</p>
+                  </div>
+                </div>
               </div>
               <div className="pt-4">
                 <div className="bg-purple-600 text-white font-black py-4 rounded-xl text-lg transition-all duration-300 ease-out text-center group-hover:bg-purple-500 group-hover:shadow-lg group-hover:shadow-purple-500/50">
@@ -109,7 +103,7 @@ const CreatePage: React.FC = () => {
             </div>
           </button>
 
-          {/* Manual Creation */}
+          {/* Manual Editor */}
           <button
             onClick={() => navigate('/create/manual')}
             className="glass p-10 rounded-[2.5rem] border-white/10 hover:border-blue-500/30 transition-all duration-300 ease-out group active:scale-95 hover:shadow-2xl hover:shadow-blue-500/20"
@@ -206,7 +200,7 @@ const CreatePage: React.FC = () => {
           </button>
         </div>
 
-        <input 
+        <input
           ref={fileInputRef}
           type="file"
           accept=".json"
@@ -214,7 +208,7 @@ const CreatePage: React.FC = () => {
           className="hidden"
         />
 
-        <div className="text-center">
+        <div className="text-center mt-8">
           <button
             onClick={() => navigate('/explore')}
             className="text-slate-500 hover:text-white font-bold text-sm uppercase tracking-widest transition-colors"
@@ -223,8 +217,8 @@ const CreatePage: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
-    </>);
+    </>
+  );
 };
 
 export default CreatePage;

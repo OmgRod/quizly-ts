@@ -1,12 +1,51 @@
 
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import prisma from '../prisma.js';
+import prisma from '../prisma.ts';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidUUID, isValidImageUrl, isValidUsername } from '../middleware/inputValidation.js';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+// List/search users with pagination (for Browse Users tab)
+router.get('/users', async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 50); // 1-50
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+    const search = (req.query.search as string)?.trim() || '';
+
+    const where: any = { profileVisibility: true };
+    if (search) {
+      where.username = { contains: search, mode: 'insensitive' };
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          username: true,
+          profilePicture: true,
+          xp: true,
+          totalPoints: true,
+          coins: true,
+          createdAt: true,
+          lastActiveAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    res.json({ users, total });
+  } catch (error) {
+    console.error('User list/search error:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
 
 // Reset all quiz data for the current user (delete all their quizzes and quiz history)
 router.post('/reset-quiz-data', requireAuth, async (req, res) => {

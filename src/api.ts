@@ -149,6 +149,9 @@ export const gameAPI = {
 
 // User endpoints
 export const userAPI = {
+  // List/search users (for Browse Users tab)
+  getAll: (params?: { search?: string; limit?: number; offset?: number }) =>
+    api.get('/users', { params }),
   getProfile: (id: string) => 
     api.get(`/user/${id}`),
   updateProfile: (data: any) => 

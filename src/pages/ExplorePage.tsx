@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { Title, Meta } from 'react-head';
 import { useNavigate } from 'react-router-dom';
 import Explore from '../components/Explore';
 import { quizAPI, gameAPI } from '../api';
@@ -74,11 +74,8 @@ const ExplorePage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Explore Quizzes | Quizly</title>
-        <meta name="description" content="Browse and discover trending, new, and recommended quizzes on Quizly." />
-        <link rel="canonical" href="https://yourdomain.com/explore" />
-      </Helmet>
+      <Title>Quizly - Explore</Title>
+      <Meta name="description" content="Explore quizzes on Quizly!" />
       <Explore
         onStartQuiz={handleStartQuiz}
         onStartAI={handleStartAI}

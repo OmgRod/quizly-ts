@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import { Title, Meta } from 'react-head';
 import { useNavigate } from 'react-router-dom';
 import QuizDetail from '../components/QuizDetail';
 import { useUser } from '../context/UserContext';
@@ -43,14 +43,13 @@ const QuizDetailPage: React.FC = () => {
   };
 
   // For SEO, ideally fetch quiz title/desc here, but fallback to generic
-  return <>
-    <Helmet>
-      <title>Quiz Details | Quizly</title>
-      <meta name="description" content="View quiz details, play, and share this quiz on Quizly." />
-      <link rel="canonical" href="https://yourdomain.com/quiz" />
-    </Helmet>
-    <QuizDetail onStartQuiz={handleStartQuiz} user={user} />
-  </>;
-};
+  return (
+    <>
+      <Title>Quizly - Quiz Details</Title>
+      <Meta name="description" content="Quiz details and play options." />
+      <QuizDetail onStartQuiz={handleStartQuiz} />
+    </>
+  );
+}
 
 export default QuizDetailPage;

@@ -70,10 +70,31 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
     }
 
     const rect = buttonElement.getBoundingClientRect();
-    setDropdownPosition({
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.right - 192 + window.scrollX // Align right edge
-    });
+    const dropdownWidth = 192; // px
+    const dropdownHeight = 200; // estimate px
+    const padding = 8;
+    let top = rect.bottom + window.scrollY + padding;
+    let left = rect.right - dropdownWidth + window.scrollX;
+
+    // Check viewport boundaries
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // If dropdown would go off right edge, align to left of button
+    if (left + dropdownWidth > viewportWidth) {
+      left = rect.left + window.scrollX;
+    }
+    // If dropdown would go off left edge, clamp to 8px from left
+    if (left < 8) {
+      left = 8;
+    }
+    // If dropdown would go off bottom edge, show above button
+    if (top + dropdownHeight > window.scrollY + viewportHeight) {
+      top = rect.top + window.scrollY - dropdownHeight - padding;
+      if (top < window.scrollY + 8) top = window.scrollY + 8;
+    }
+
+    setDropdownPosition({ top, left });
     setOpenDropdownId(quizId);
   };
 

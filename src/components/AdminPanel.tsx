@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import api from '../api';
-import Card from './ui/Card';
-import Button from './ui/Button';
+import { Card } from './ui/Card';
+import { Button } from './ui/Button';
 import { Trash2, Edit2, Lock, Unlock, Shield, ShieldOff, Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Modal from './ui/Modal';
 import { LIMITS } from './QuizCreator';
