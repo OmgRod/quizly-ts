@@ -8,14 +8,14 @@ import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import authRoutes from './routes/auth.ts';
-import quizRoutes from './routes/quiz.ts';
-import gameRoutes from './routes/game.ts';
-import userRoutes from './routes/user.ts';
-import adminRoutes from './routes/admin.ts';
-import reportsRoutes from './routes/reports.ts';
-import { setupSocketHandlers } from './socket.ts';
-import { validateInput, validatePagination } from './middleware/inputValidation.ts';
+import authRoutes from './routes/auth';
+import quizRoutes from './routes/quiz';
+import gameRoutes from './routes/game';
+import userRoutes from './routes/user';
+import adminRoutes from './routes/admin';
+import reportsRoutes from './routes/reports';
+import { setupSocketHandlers } from './socket';
+import { validateInput, validatePagination } from './middleware/inputValidation';
 import prisma from './prisma';
 
 // Create __dirname for ES modules
