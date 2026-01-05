@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../prisma.ts';
+import prisma from '../prisma';
 
 // Extend Express Request to include userId
 declare global {

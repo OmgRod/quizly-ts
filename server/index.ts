@@ -16,7 +16,7 @@ import adminRoutes from './routes/admin.ts';
 import reportsRoutes from './routes/reports.ts';
 import { setupSocketHandlers } from './socket.ts';
 import { validateInput, validatePagination } from './middleware/inputValidation.ts';
-import prisma from './prisma.ts';
+import prisma from './prisma';
 
 // Create __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);

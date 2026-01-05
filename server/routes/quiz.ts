@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import prisma from '../prisma.ts';
+import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidUUID, sanitizeText } from '../middleware/inputValidation.js';
 import { generateQuizFromAI, modifyQuizWithAI } from '../services/aiService.js';

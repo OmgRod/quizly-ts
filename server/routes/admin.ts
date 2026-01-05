@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import prisma from '../prisma.ts';
+import prisma from '../prisma';
 import { requireAdmin } from '../middleware/admin.js';
 import { requireAuth } from '../middleware/auth.js';
 

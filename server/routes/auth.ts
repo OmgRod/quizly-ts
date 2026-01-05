@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import prisma from '../prisma.ts';
+import prisma from '../prisma';
 import { requireAuth } from '../middleware/auth.ts';
 import { isValidUsername } from '../middleware/inputValidation.ts';
 import rateLimit from 'express-rate-limit';
