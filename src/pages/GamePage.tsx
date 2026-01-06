@@ -172,6 +172,8 @@ const GamePage: React.FC = () => {
       if (data.error === 'ROOM_NOT_FOUND') {
         // Redirect to error page for non-existent room
         navigate(`/error?code=410&message=${encodeURIComponent('This game session has ended or does not exist')}`);
+      } else if (data.error === 'ALREADY_JOINED') {
+        navigate(`/error?code=403&message=${encodeURIComponent('This account is already connected to this game. If you are reconnecting, please close other tabs or devices.')}`);
       } else {
         handleError(500, data.message || 'Failed to join game room');
       }
