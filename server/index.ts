@@ -3,7 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import session from 'express-session';
-import { PrismaSessionStore } from './PrismaSessionStore';
+import { PrismaSessionStore } from './PrismaSessionStore.js';
 import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
