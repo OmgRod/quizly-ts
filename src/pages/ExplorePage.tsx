@@ -37,13 +37,9 @@ const ExplorePage: React.FC = () => {
         // Create multiplayer session
         if (!user) {
           navigate('/auth');
-          return;
-        }
-        if (quiz.visibility === 'DRAFT') {
-          alert('Draft quizzes cannot be hosted.');
-          return;
-        }
-        if (quiz.visibility === 'PRIVATE' && quiz.userId !== user.id) {
+          return (
+            <Explore />
+          );
           alert('Only the creator can host a private quiz.');
           return;
         }
@@ -74,8 +70,6 @@ const ExplorePage: React.FC = () => {
 
   return (
     <>
-      <Title>Quizly - Explore</Title>
-      <Meta name="description" content="Explore quizzes on Quizly!" />
       <Explore
         onStartQuiz={handleStartQuiz}
         onStartAI={handleStartAI}

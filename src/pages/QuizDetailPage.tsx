@@ -23,13 +23,9 @@ const QuizDetailPage: React.FC = () => {
         // Create multiplayer session
         if (!user) {
           navigate('/auth');
-          return;
-        }
-        if (quiz.visibility === 'DRAFT') {
-          alert('Draft quizzes cannot be hosted.');
-          return;
-        }
-        if (quiz.visibility === 'PRIVATE' && quiz.userId !== user.id) {
+          return (
+            <QuizDetail />
+          );
           alert('Only the creator can host a private quiz.');
           return;
         }
@@ -45,8 +41,6 @@ const QuizDetailPage: React.FC = () => {
   // For SEO, ideally fetch quiz title/desc here, but fallback to generic
   return (
     <>
-      <Title>Quizly - Quiz Details</Title>
-      <Meta name="description" content="Quiz details and play options." />
       <QuizDetail onStartQuiz={handleStartQuiz} />
     </>
   );

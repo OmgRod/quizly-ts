@@ -23,8 +23,6 @@ const JoinPage: React.FC = () => {
 
   return (
     <>
-      <Title>Quizly - Join Game</Title>
-      <Meta name="description" content="Join a Quizly game!" />
       <Join onJoin={handleJoin} onBack={handleBack} />
     </>
   );
