@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg width="512" height="512" viewBox="0 0 135.46666 135.46667" version="1.1" id="svg1" inkscape:version="1.4 (86a8ad7, 2024-10-11)" sodipodi:docname="quizly.svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview id="namedview1" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25" inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:document-units="mm" inkscape:zoom="0.71891835" inkscape:cx="264.98141" inkscape:cy="463.89134" inkscape:window-width="1920" inkscape:window-height="1009" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:window-maximized="1" inkscape:current-layer="layer1"></sodipodi:namedview>
+  <defs id="defs1">
+    <rect x="77.894798" y="93.195562" width="439.54922" height="372.78225" id="rect2"></rect>
+    <linearGradient id="linearGradient1" inkscape:collect="always">
+      <stop style="stop-color:#2684ff;stop-opacity:1;" offset="0" id="stop1"></stop>
+      <stop style="stop-color:#9400cf;stop-opacity:1;" offset="1" id="stop2"></stop>
+    </linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient1" id="linearGradient2" x1="12.935912" y1="27.920679" x2="122.53073" y2="107.54597" gradientUnits="userSpaceOnUse"></linearGradient>
+  </defs>
+  <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1">
+    <rect style="fill:url(#linearGradient2);stroke-width:0.410323" id="rect1" x="0" y="0" height="135.46666" width="135.46666" ry="26.866171"></rect>
+    <text xml:space="preserve" transform="matrix(0.33491561,0,0,0.33491561,4.006083,-16.234883)" id="text2" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:256px;font-family:'Plus Jakarta Sans';-inkscape-font-specification:'Plus Jakarta Sans, @wght=800';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:'wght' 800;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#ffffff;fill-opacity:1"><tspan x="77.894531" y="336.09055" id="tspan2">Q</tspan></text>
+  </g>
+</svg></svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
