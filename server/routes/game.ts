@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import prisma from '../prisma';
+import prisma from '../prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidUUID } from '../middleware/inputValidation.js';
 import rateLimit from 'express-rate-limit';

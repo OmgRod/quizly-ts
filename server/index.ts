@@ -8,15 +8,15 @@ import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import authRoutes from './routes/auth';
-import quizRoutes from './routes/quiz';
-import gameRoutes from './routes/game';
-import userRoutes from './routes/user';
-import adminRoutes from './routes/admin';
-import reportsRoutes from './routes/reports';
-import { setupSocketHandlers } from './socket';
-import { validateInput, validatePagination } from './middleware/inputValidation';
-import prisma from './prisma';
+import authRoutes from './routes/auth.js';
+import quizRoutes from './routes/quiz.js';
+import gameRoutes from './routes/game.js';
+import userRoutes from './routes/user.js';
+import adminRoutes from './routes/admin.js';
+import reportsRoutes from './routes/reports.js';
+import { setupSocketHandlers } from './socket.js';
+import { validateInput, validatePagination } from './middleware/inputValidation.js';
+import prisma from './prisma.js';
 
 // Create __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);

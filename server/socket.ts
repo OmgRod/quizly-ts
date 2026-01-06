@@ -2,7 +2,7 @@
 const pendingAcks: Map<string, Map<string, { event: string; payload: any }>> = new Map(); // pin -> playerId -> {event, payload}
 
 import { Server, Socket } from 'socket.io';
-import prisma from './prisma';
+import prisma from './prisma.js';
 
 // GameState enum to convert numeric values to strings for database
 enum GameState {
