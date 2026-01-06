@@ -90,10 +90,10 @@ const LobbyPage: React.FC = () => {
       console.error('[LOBBY] ROOM_ERROR received:', data);
       if (data.error === 'ROOM_NOT_FOUND') {
         navigate(`/error?code=410&message=${encodeURIComponent('This game session has ended or does not exist')}`);
-      } else if (data.error === 'ALREADY_JOINED') {
-        navigate(`/error?code=403&message=${encodeURIComponent('This account is already connected to this game. If you are reconnecting, please close other tabs or devices.')}`);
       } else {
-        handleError(500, data.message || 'Failed to join lobby');
+        // Ignore ALREADY_JOINED error and allow user to proceed
+        // Optionally log or show a non-blocking message
+        console.warn('[LOBBY] Ignored ALREADY_JOINED error:', data);
       }
     });
 
@@ -224,6 +224,7 @@ const LobbyPage: React.FC = () => {
   const handleStart = () => {
     if (socket && pin && quiz && isHost) {
       socket.emit('START_SIGNAL', { pin, quiz });
+      socket.disconnect();
       navigate(`/game/${pin}`);
     }
   };

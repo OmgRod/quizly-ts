@@ -154,11 +154,13 @@ export function setupSocketHandlers(io: Server) {
           // Prevent duplicate account join
           // Strict duplicate join prevention
           if (data.userId) {
-            // Authenticated: block if any connected player has same userId (except this socket)
+            // Authenticated: block only if another socket is truly active for this userId
             const alreadyIn = players.find((p: any) =>
               p.userId === data.userId &&
               p.connected !== false &&
-              p.socketId !== socket.id
+              p.socketId !== socket.id &&
+              typeof p.socketId === 'string' &&
+              roomConnections.get(pin)?.get(p.id) === p.socketId
             );
             if (alreadyIn) {
               socket.emit('ROOM_ERROR', {
@@ -169,11 +171,13 @@ export function setupSocketHandlers(io: Server) {
               return;
             }
           } else {
-            // Guest: block if any connected player has same playerId (except this socket)
+            // Guest: block only if another socket is truly active for this playerId
             const alreadyIn = players.find((p: any) =>
               p.id === playerId &&
               p.connected !== false &&
-              p.socketId !== socket.id
+              p.socketId !== socket.id &&
+              typeof p.socketId === 'string' &&
+              roomConnections.get(pin)?.get(p.id) === p.socketId
             );
             if (alreadyIn) {
               socket.emit('ROOM_ERROR', {
@@ -495,17 +499,18 @@ export function setupSocketHandlers(io: Server) {
                 // Only mark as disconnected if their current socketId matches this disconnecting socket
                 // (prevents marking as disconnected if they already reconnected with a new socket)
                 if (player && player.socketId === socket.id) {
-                  // Remove player from the list entirely
-                  const updatedPlayers = players.filter((p: any) => p.id !== playerId);
+                  // Mark player as disconnected and clear socketId
+                  player.connected = false;
+                  player.socketId = null;
                   await prisma.gameSession.update({
                     where: { pin },
-                    data: { players: JSON.stringify(updatedPlayers) }
+                    data: { players: JSON.stringify(players) }
                   });
-                  // Notify all clients in the room with the new player list
-                  io.to(pin).emit('LOBBY_UPDATE', { pin, players: updatedPlayers });
+                  // Notify all clients in the room with the updated player list
+                  io.to(pin).emit('LOBBY_UPDATE', { pin, players });
                   // Also emit PLAYER_DISCONNECTED for legacy UI
                   io.to(pin).emit('PLAYER_DISCONNECTED', { pin, playerId, connected: false });
-                  console.log(`Player ${playerId} removed from room ${pin} on disconnect`);
+                  console.log(`Player ${playerId} marked as disconnected in room ${pin} on disconnect`);
                 } else if (player) {
                   if (typeof player.socketId === 'string' && player.socketId !== socket.id) {
                     console.log(`Socket ${socket.id} disconnected but player ${playerId} already reconnected with socket ${player.socketId}`);

@@ -72,12 +72,16 @@ const GamePage: React.FC = () => {
     initializeGame();
     setGameInitialized(true);
 
+    window.onbeforeunload = () => {
+      if (socket) socket.disconnect();
+    };
     return () => {
       console.log('GamePage: Cleanup triggered');
       if (socket) {
         socket.disconnect();
       }
       botTimerRefs.current.forEach(t => clearTimeout(t));
+      window.onbeforeunload = null;
     };
   }, [pin, userLoading, gameInitialized]);
 
@@ -172,10 +176,10 @@ const GamePage: React.FC = () => {
       if (data.error === 'ROOM_NOT_FOUND') {
         // Redirect to error page for non-existent room
         navigate(`/error?code=410&message=${encodeURIComponent('This game session has ended or does not exist')}`);
-      } else if (data.error === 'ALREADY_JOINED') {
-        navigate(`/error?code=403&message=${encodeURIComponent('This account is already connected to this game. If you are reconnecting, please close other tabs or devices.')}`);
       } else {
-        handleError(500, data.message || 'Failed to join game room');
+        // Ignore ALREADY_JOINED error and allow user to proceed
+        // Optionally log or show a non-blocking message
+        console.warn('[GAME] Ignored ALREADY_JOINED error:', data);
       }
     });
 
