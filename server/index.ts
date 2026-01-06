@@ -3,7 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import session from 'express-session';
-import SQLiteStore from 'connect-sqlite3';
+import { PrismaSessionStore } from './PrismaSessionStore';
 import cors from 'cors';
 import csrf from 'csurf';
 import path from 'path';
@@ -74,7 +74,7 @@ app.use(validatePagination);
 
 // Session middleware
 app.use(session({
-  store: new (SQLiteStore(session))({ db: 'sessions.sqlite', dir: './server' }),
+  store: new PrismaSessionStore(),
   secret: process.env.SESSION_SECRET || 'quizly-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
