@@ -9,6 +9,10 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const totalPages = Math.ceil(quizzes.length / pageSize);
+  const paginatedQuizzes = quizzes.slice((page - 1) * pageSize, page * pageSize);
 
   useEffect(() => {
     if (user) {
@@ -64,13 +68,27 @@ const DashboardPage: React.FC = () => {
   if (!user) return null;
 
   return (
+    <div className="flex justify-end mb-4">
+      <button
+        onClick={() => navigate(`/profile/${user.id}`)}
+        className="px-4 py-2 rounded-xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-500 transition-all"
+      >
+        View Your Profile
+      </button>
+    </div>
     <Dashboard
       user={user}
+      quizzes={paginatedQuizzes}
       onEditQuiz={handleEditQuiz}
       onPlayQuiz={handlePlayQuiz}
       onNewQuiz={handleNewQuiz}
       onSettings={handleSettings}
     />
+    <div className="flex justify-center mt-6 gap-2">
+      <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-50">Prev</button>
+      <span className="px-3 py-1 font-bold text-slate-400">Page {page} of {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-50">Next</button>
+    </div>
   );
 };
 

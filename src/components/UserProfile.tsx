@@ -173,28 +173,35 @@ const UserProfile: React.FC = () => {
                   <p className="font-bold text-xl uppercase tracking-widest">No Quizzes Yet</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {quizzes.map(q => (
-                <div
-                  key={q.id}
-                  onClick={() => navigate(`/quiz/${q.id}`)}
-                  className="glass p-6 rounded-2xl border-white/5 hover:border-blue-500/30 transition-all cursor-pointer group"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                      <i className={`bi ${getGenreIcon(q.genre)} text-xl`}></i>
-                    </div>
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{q.playCount}</span>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paginatedQuizzes.map(q => (
+                      <div
+                        key={q.id}
+                        onClick={() => navigate(`/quiz/${q.id}`)}
+                        className="glass p-6 rounded-2xl border-white/5 hover:border-blue-500/30 transition-all cursor-pointer group"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                            <i className={`bi ${getGenreIcon(q.genre)} text-xl`}></i>
+                          </div>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{q.playCount}</span>
+                        </div>
+                        <h3 className="text-lg font-black text-white mb-2 line-clamp-2">{q.title}</h3>
+                        <p className="text-slate-500 text-xs font-medium line-clamp-2 mb-4">{q.description}</p>
+                        <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                          {q.questions.length} Questions
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <h3 className="text-lg font-black text-white mb-2 line-clamp-2">{q.title}</h3>
-                  <p className="text-slate-500 text-xs font-medium line-clamp-2 mb-4">{q.description}</p>
-                  <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
-                    {q.questions.length} Questions
+                  <div className="flex justify-center mt-6 gap-2">
+                    <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-50">Prev</button>
+                    <span className="px-3 py-1 font-bold text-slate-400">Page {page} of {totalPages}</span>
+                    <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-50">Next</button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}            </>
+                </>
+              )}
           ) : (
             <div className="glass p-20 rounded-[3rem] border-white/10 text-center space-y-4">
               <i className="bi bi-eye-slash text-6xl text-slate-600 block"></i>

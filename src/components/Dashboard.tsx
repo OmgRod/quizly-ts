@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 
 interface DashboardProps {
   user: User;
+  quizzes?: Quiz[];
   onEditQuiz: (quiz: Quiz) => void;
   onPlayQuiz: (quiz: Quiz) => void;
   onNewQuiz: () => void;
@@ -20,8 +21,8 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onNewQuiz, onSettings }) => {
   const navigate = useNavigate();
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [loading, setLoading] = useState(true);
+  // quizzes are now passed as prop for pagination
+  const [loading, setLoading] = useState(false);
   const [confirmingQuiz, setConfirmingQuiz] = useState<Quiz | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -31,19 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
   const [newTitle, setNewTitle] = useState('');
 
   useEffect(() => {
-    const loadQuizzes = async () => {
-      if (user) {
-        try {
-          const response = await quizAPI.getAll({ userId: user.id });
-          setQuizzes(response.data.quizzes);
-        } catch (error) {
-          console.error('Failed to load quizzes:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    loadQuizzes();
+    // quizzes are loaded in DashboardPage and paginated
   }, [user?.id]);
 
   // Handle click outside to close dropdown
@@ -251,7 +240,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
             </div>
           ) : (
             <div className="grid gap-4">
-              {quizzes.map(q => (
+              {(quizzes || []).map(q => (
                 <div 
                   key={q.id} 
                   onClick={() => navigate(`/quiz/${q.id}`)}
