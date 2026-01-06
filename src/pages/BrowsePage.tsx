@@ -1,5 +1,5 @@
 import React from 'react';
-import { Title, Meta } from 'react-head';
+
 import { useNavigate } from 'react-router-dom';
 import Browse from '../components/Browse';
 import { quizAPI, gameAPI } from '../api';

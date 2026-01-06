@@ -1,5 +1,5 @@
 import React from 'react';
-import { Title, Meta } from 'react-head';
+
 import { useNavigate } from 'react-router-dom';
 import QuizDetail from '../components/QuizDetail';
 import { useUser } from '../context/UserContext';

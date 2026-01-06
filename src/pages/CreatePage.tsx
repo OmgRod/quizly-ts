@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Title, Meta } from 'react-head';
+
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { parseQuizFile } from '../utils/quizImportExport';

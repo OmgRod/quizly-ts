@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Title, Meta } from 'react-head';
+
 import { useNavigate } from 'react-router-dom';
 import Explore from '../components/Explore';
 import { quizAPI, gameAPI } from '../api';

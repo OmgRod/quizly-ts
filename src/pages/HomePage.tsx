@@ -1,5 +1,5 @@
 import React from 'react';
-import { Title, Meta } from 'react-head';
+
 import { useNavigate } from 'react-router-dom';
 import Home from '../components/Home';
 import { useUser } from '../context/UserContext';
@@ -26,11 +26,7 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <>
-      <Title>Quizly - Home</Title>
-      <Meta name="description" content="Welcome to Quizly!" />
-      <Home onStart={handleStart} onSolo={handleSolo} onJoin={handleJoin} />
-    </>
+    <Home onStart={handleStart} onSolo={handleSolo} onJoin={handleJoin} />
   );
 }
 
