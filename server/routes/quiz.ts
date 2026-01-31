@@ -582,7 +582,8 @@ router.post('/', requireAuth, async (req, res) => {
 // Update quiz (requires auth)
 router.put('/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
     const { title, genre, description, questions, visibility } = req.body;
     const userId = req.session.userId!;
 
@@ -656,7 +657,8 @@ router.put('/:id', requireAuth, async (req, res) => {
 // Delete quiz (requires auth)
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
     const userId = req.session.userId!;
 
     // Validate quiz ID format
@@ -691,7 +693,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
 // Increment play count
 router.post('/:id/play', async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
 
     // Validate quiz ID format
     if (!isValidUUID(id)) {

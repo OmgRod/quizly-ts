@@ -37,9 +37,6 @@ const ExplorePage: React.FC = () => {
         // Create multiplayer session
         if (!user) {
           navigate('/auth');
-          return (
-            <Explore />
-          );
           alert('Only the creator can host a private quiz.');
           return;
         }

@@ -13,13 +13,14 @@ import toast from 'react-hot-toast';
 interface DashboardProps {
   user: User;
   quizzes?: Quiz[];
+  setQuizzes: React.Dispatch<React.SetStateAction<Quiz[]>>;
   onEditQuiz: (quiz: Quiz) => void;
   onPlayQuiz: (quiz: Quiz) => void;
   onNewQuiz: () => void;
   onSettings: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onNewQuiz, onSettings }) => {
+const Dashboard: React.FC<DashboardProps> = ({ user, quizzes = [], setQuizzes, onEditQuiz, onPlayQuiz, onNewQuiz, onSettings }) => {
   const navigate = useNavigate();
   // quizzes are now passed as prop for pagination
   const [loading, setLoading] = useState(false);
@@ -205,7 +206,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
                   ></div>
                 </div>
               </div>
-
+              <button
+                onClick={() => navigate(`/profile/${user.id}`)}
+                className="px-4 py-2 rounded-xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-500 transition-all"
+              >
+                <i className="bi bi-person-fill"></i> View Your Profile
+              </button>
               <button 
                 onClick={onSettings}
                 className="w-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-white/5 transition-all flex items-center justify-center gap-3"
@@ -240,7 +246,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onEditQuiz, onPlayQuiz, onN
             </div>
           ) : (
             <div className="grid gap-4">
-              {(quizzes || []).map(q => (
+              {quizzes.map(q => (
                 <div 
                   key={q.id} 
                   onClick={() => navigate(`/quiz/${q.id}`)}

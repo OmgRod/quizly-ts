@@ -80,9 +80,9 @@ router.post('/', requireAuth, async (req, res) => {
 // Get all reports (admin only) with pagination
 router.get('/', requireAdmin, async (req, res) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const search = (req.query.search as string) || '';
-    const status = (req.query.status as string) || '';
+    const page = parseInt(Array.isArray(req.query.page) ? String(req.query.page[0]) : String(req.query.page)) || 1;
+    const search = Array.isArray(req.query.search) ? String(req.query.search[0]) : (req.query.search ? String(req.query.search) : '');
+    const status = Array.isArray(req.query.status) ? String(req.query.status[0]) : (req.query.status ? String(req.query.status) : '');
     const ITEMS_PER_PAGE = 10;
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
@@ -147,7 +147,8 @@ router.get('/', requireAdmin, async (req, res) => {
 // Get report details (admin only)
 router.get('/:id', requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
 
     const report = await prisma.report.findUnique({
       where: { id },
@@ -198,7 +199,8 @@ router.get('/:id', requireAdmin, async (req, res) => {
 // Update report status (admin only)
 router.patch('/:id/status', requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    if (Array.isArray(id)) id = id[0];
     const { status, action } = req.body;
 
     // Validate status

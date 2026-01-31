@@ -23,9 +23,6 @@ const QuizDetailPage: React.FC = () => {
         // Create multiplayer session
         if (!user) {
           navigate('/auth');
-          return (
-            <QuizDetail />
-          );
           alert('Only the creator can host a private quiz.');
           return;
         }
@@ -41,7 +38,7 @@ const QuizDetailPage: React.FC = () => {
   // For SEO, ideally fetch quiz title/desc here, but fallback to generic
   return (
     <>
-      <QuizDetail onStartQuiz={handleStartQuiz} />
+      <QuizDetail onStartQuiz={handleStartQuiz} user={user} />
     </>
   );
 }

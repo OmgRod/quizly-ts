@@ -7,9 +7,11 @@ import { useErrorHandler } from '../hooks/useErrorHandler';
 import { getGenreIcon } from '../utils/genre';
 import { getLevelProgress } from '../utils/leveling';
 import ReportModal from './ReportModal';
+import ErrorPage from '../pages/ErrorPage';
 import { useUser } from '../context/UserContext';
 
 const UserProfile: React.FC = () => {
+  const PAGE_SIZE = 6;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { handleError } = useErrorHandler();
@@ -19,6 +21,9 @@ const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [globalRank, setGlobalRank] = useState<{ xp: number | null; coins: number | null }>({ xp: null, coins: null });
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(quizzes.length / PAGE_SIZE));
+  const paginatedQuizzes = quizzes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -28,53 +33,42 @@ const UserProfile: React.FC = () => {
           userAPI.getProfile(id),
           quizAPI.getAll({ userId: id }),
           userAPI.getGlobalLeaderboard({ limit: 100, type: 'xp' }),
-          userAPI.getGlobalLeaderboard({ limit: 100, type: 'coins' })
+          userAPI.getGlobalLeaderboard({ limit: 100, type: 'coins' }),
         ]);
-        setUser(userResponse.data.user);
-        setQuizzes(quizzesResponse.data.quizzes);
-        
-        // Find user's rank in both leaderboards
-        const xpRankIndex = xpLeaderboard.data.users.findIndex((u: any) => u.id === id);
-        const coinsRankIndex = coinsLeaderboard.data.users.findIndex((u: any) => u.id === id);
-        
+        setUser(userResponse.data);
+        setQuizzes(quizzesResponse.data);
         setGlobalRank({
-          xp: xpRankIndex !== -1 ? xpRankIndex + 1 : null,
-          coins: coinsRankIndex !== -1 ? coinsRankIndex + 1 : null
+          xp: Array.isArray(xpLeaderboard.data)
+            ? (xpLeaderboard.data.findIndex((u: User) => u.id === id) + 1 || null)
+            : null,
+          coins: Array.isArray(coinsLeaderboard.data)
+            ? (coinsLeaderboard.data.findIndex((u: User) => u.id === id) + 1 || null)
+            : null,
         });
-      } catch (error: any) {
-        console.error('Failed to load user profile:', error);
-        // Check if it's a 404 or 403 response - both mean user doesn't exist or is private
-        if (error.response?.status === 404 || error.response?.status === 403) {
-          handleError(411, 'User profile unavailable');
-        } else if (error.response) {
-          // Server responded with an error
-          handleError(error.response.status, error.response.data?.error || 'Failed to load user profile');
-        } else {
-          // Network or other error
-          handleError(500, 'Failed to load user profile');
-        }
-      } finally {
         setLoading(false);
+      } catch (err) {
+        handleError(err);
       }
     };
     loadUserProfile();
-  }, [id, handleError]);
+    // eslint-disable-next-line
+  }, [id]);
+
+  const { level, progress } = getLevelProgress(user?.xp || 0);
+
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="glass p-8 rounded-3xl">
-          <div className="animate-pulse text-white font-black">Loading...</div>
-        </div>
+      <div className="flex justify-center items-center h-96">
+        <span className="text-slate-400 text-xl font-bold">Loading...</span>
       </div>
     );
   }
 
+  // Show error page if user not found or profile is private
   if (!user) {
-    return null; // Error handler will redirect to error page
+    return <ErrorPage defaultCode="411" defaultMessage="This user either doesn't exist or has chosen to keep their profile private." />;
   }
-
-  const { level, progress } = getLevelProgress(user?.xp || 0);
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
@@ -94,11 +88,9 @@ const UserProfile: React.FC = () => {
               className="w-32 h-32 rounded-[3rem] shadow-2xl mb-6 object-contain bg-white/5"
             />
             <h1 className="text-4xl font-black text-white mb-2">{user?.username || 'User'}</h1>
-            
             <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20 mb-4">
               Level {level}
             </div>
-
             {/* Join Date and Last Online, shown only if allowed by privacy settings */}
             <div className="flex flex-col items-center gap-1 mb-8">
               {user?.showJoinDate !== false && user?.createdAt && (
@@ -108,7 +100,6 @@ const UserProfile: React.FC = () => {
                 <div className="text-xs text-slate-400 font-bold">Last Online: {new Date(user.lastActiveAt).toLocaleDateString()}</div>
               )}
             </div>
-
             <div className="grid grid-cols-2 gap-4 w-full mb-8">
               <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                 <div className="text-[10px] font-black text-slate-500 uppercase mb-1">XP</div>
@@ -129,7 +120,6 @@ const UserProfile: React.FC = () => {
                 )}
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4 w-full mb-8">
               {user?.showQuizStats !== false && (
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
@@ -138,7 +128,6 @@ const UserProfile: React.FC = () => {
                 </div>
               )}
             </div>
-
             <div className="w-full text-left space-y-4">
               <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
                 <span>Progress</span>
@@ -151,7 +140,6 @@ const UserProfile: React.FC = () => {
                 ></div>
               </div>
             </div>
-
             {currentUser?.id !== user.id && (
               <button
                 onClick={() => setReportModalOpen(true)}
@@ -162,7 +150,6 @@ const UserProfile: React.FC = () => {
             )}
           </div>
         </div>
-
         <div className="lg:col-span-2">
           {user?.showQuizStats !== false ? (
             <>
@@ -202,15 +189,16 @@ const UserProfile: React.FC = () => {
                   </div>
                 </>
               )}
+            </>
           ) : (
             <div className="glass p-20 rounded-[3rem] border-white/10 text-center space-y-4">
               <i className="bi bi-eye-slash text-6xl text-slate-600 block"></i>
               <p className="font-bold text-xl uppercase tracking-widest text-slate-500">Quiz Stats Hidden</p>
               <p className="text-slate-600 text-sm">This user has chosen to keep their quiz creations private</p>
             </div>
-          )}        </div>
+          )}
+        </div>
       </div>
-
       <ReportModal
         isOpen={reportModalOpen}
         onClose={() => setReportModalOpen(false)}
@@ -221,5 +209,4 @@ const UserProfile: React.FC = () => {
     </div>
   );
 };
-
 export default UserProfile;

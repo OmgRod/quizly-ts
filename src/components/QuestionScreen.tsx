@@ -330,7 +330,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && inputValue.trim() && onAnswer(inputValue.trim())}
-                    maxLength="100"
+                    maxLength={100}
                     className="w-full bg-white/5 border-2 border-purple-500/20 p-8 rounded-[2rem] text-3xl font-black text-white text-center focus:outline-none focus:border-purple-500/50 transition-all placeholder:opacity-20 tracking-widest"
                     placeholder="Your word or phrase..."
                     autoFocus

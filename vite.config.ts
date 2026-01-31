@@ -23,9 +23,18 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       build: {
+        chunkSizeWarningLimit: 600,
         rollupOptions: {
           output: {
-            format: 'es'
+            format: 'es',
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('react')) return 'react-vendor';
+                if (id.includes('socket.io-client')) return 'socket-vendor';
+                if (id.includes('@google/genai')) return 'ai-vendor';
+                return 'vendor';
+              }
+            }
           }
         }
       },

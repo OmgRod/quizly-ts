@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import realtimeSocket from '../services/realtimeSocket';
 import toast from 'react-hot-toast';
 import { quizAPI } from '../api';
 import { Quiz, QuizGenre } from '../types';
@@ -97,31 +98,53 @@ const QuizCreator: React.FC<QuizCreatorProps> = ({ onQuizCreated, onBack, isSolo
   const handleGenerate = async () => {
     if (!topic) return;
     setLoading(true);
-    try {
-      const response = await quizAPI.generateFromAI(topic, questionCount, userId);
-      const quiz = response.data.quiz;
-      
-      // Quiz is ready! Immediately complete the progress bar
-      if (progressInterval.current) clearInterval(progressInterval.current);
+    setProgress(0);
+    setStatus('Starting...');
+
+    // Remove previous listeners
+    realtimeSocket.off('ai_quiz_progress', onProgress);
+    realtimeSocket.off('ai_quiz_chunk', onChunk);
+    realtimeSocket.off('ai_quiz_complete', onComplete);
+    realtimeSocket.off('ai_quiz_error', onError);
+
+    let quizText = '';
+    function onProgress({ progress, status }: { progress: number, status: string }) {
+      setProgress(progress);
+      setStatus(status);
+    }
+    function onChunk({ text }: { text: string }) {
+      quizText += text || '';
+    }
+    function onComplete({ quiz }: { quiz: any }) {
       setProgress(100);
-      setStatus("Quiz ready!");
-      
-      // Short animation delay before showing the quiz
+      setStatus('Quiz ready!');
       setTimeout(() => {
-        onQuizCreated({ 
-          ...quiz, 
-          genre, 
+        onQuizCreated({
+          ...quiz,
+          genre,
           authorName: authorName || 'AI Core',
-          playCount: 0 
+          playCount: 0
         });
         setLoading(false);
       }, 400);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || "AI is currently unavailable. Please try again.";
-      toast.error(errorMessage);
+    }
+    function onError({ error }: { error: string }) {
+      toast.error(error || 'AI error');
       setLoading(false);
       setProgress(0);
     }
+
+    realtimeSocket.on('ai_quiz_progress', onProgress);
+    realtimeSocket.on('ai_quiz_chunk', onChunk);
+    realtimeSocket.on('ai_quiz_complete', onComplete);
+    realtimeSocket.on('ai_quiz_error', onError);
+
+    // Emit request to backend
+    realtimeSocket.emit('ai_generate_quiz_stream', {
+      topic,
+      count: questionCount,
+      userId: userId || 'guest'
+    });
   };
 
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {

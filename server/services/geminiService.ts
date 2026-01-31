@@ -4,6 +4,30 @@ import { Quiz, QuestionType, PointType, Question } from "../../src/types.js";
 
 const modelName = "gemini-3-flash-preview";
 
+// Streaming version for real-time output
+export async function generateQuizFromAIStream(topic: string, count: number = 5, userId: string = 'guest') {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Use generateContentStream for streaming
+  const stream = await ai.models.generateContentStream({
+    model: modelName,
+    contents: `Generate a "wild" and highly engaging ${count}-question interactive quiz about: ${topic}. 
+    Include various types: 'MULTIPLE_CHOICE', 'TRUE_FALSE', 'INPUT', and 'PUZZLE' (ordering items).
+    IMPORTANT RULES FOR VARIED QUESTIONS:
+    1. For MULTIPLE_CHOICE: Be creative with the number of options. Provide between 2 and 8 options. Do NOT always provide 4. You CAN have multiple correct answers (e.g., [0, 2] for indices 0 and 2).
+    2. For TRUE_FALSE: 'options' MUST be exactly ["True", "False"].
+    3. For MULTIPLE_CHOICE and TRUE_FALSE: 'correctIndices' MUST NOT BE EMPTY. Select at least one correct index. MULTIPLE_CHOICE can have 1 or more correct answers.
+    4. For PUZZLE: provide 'correctSequence' as an array of 3 to 8 strings in the correct order.
+    5. For INPUT: provide 'correctTexts' as an array of 1-3 possible correct string answers.
+    6. Assign 'pointType': 'NORMAL', 'HALF', or 'DOUBLE'.
+    7. All questions MUST have a 'text', 'type', 'pointType', and 'timeLimit' (usually 20 or 30).
+    Make the questions challenging, witty, and varied. All questions must have complete options and correct structure.`,
+    config: {
+      responseMimeType: "application/json"
+    }
+  });
+  return stream;
+}
+
 export async function generateQuizFromAI(topic: string, count: number = 5, userId: string = 'guest'): Promise<Quiz> {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   

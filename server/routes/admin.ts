@@ -56,8 +56,9 @@ router.get('/quizzes', requireAdmin, async (req, res) => {
 // Get single quiz details for editing (admin only)
 router.get('/quizzes/:id', requireAdmin, async (req, res) => {
   try {
+    const quizId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const quiz = await prisma.quiz.findUnique({
-      where: { id: req.params.id },
+      where: { id: quizId },
       include: {
         user: {
           select: {
@@ -85,8 +86,9 @@ router.put('/quizzes/:id', requireAdmin, async (req, res) => {
   try {
     const { title, description, genre, visibility } = req.body;
 
+    const quizId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const quiz = await prisma.quiz.findUnique({
-      where: { id: req.params.id }
+      where: { id: quizId }
     });
 
     if (!quiz) {
@@ -94,7 +96,7 @@ router.put('/quizzes/:id', requireAdmin, async (req, res) => {
     }
 
     const updated = await prisma.quiz.update({
-      where: { id: req.params.id },
+      where: { id: quizId },
       data: {
         title: title || quiz.title,
         description: description ?? quiz.description,
@@ -119,8 +121,9 @@ router.put('/quizzes/:id', requireAdmin, async (req, res) => {
 // Delete quiz (admin only)
 router.delete('/quizzes/:id', requireAdmin, async (req, res) => {
   try {
+    const quizId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const quiz = await prisma.quiz.findUnique({
-      where: { id: req.params.id }
+      where: { id: quizId }
     });
 
     if (!quiz) {
@@ -128,7 +131,7 @@ router.delete('/quizzes/:id', requireAdmin, async (req, res) => {
     }
 
     await prisma.quiz.delete({
-      where: { id: req.params.id }
+      where: { id: quizId }
     });
 
     res.json({ message: 'Quiz deleted' });
@@ -182,7 +185,7 @@ router.get('/users', requireAdmin, async (req, res) => {
 router.get('/users/:id', requireAdmin, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
+        where: { id: Array.isArray(req.params.id) ? req.params.id[0] : req.params.id },
       select: {
         id: true,
         username: true,
@@ -223,8 +226,9 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 router.put('/users/:id', requireAdmin, async (req, res) => {
   try {
     const { coins, adminRole } = req.body;
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const targetUser = await prisma.user.findUnique({
-      where: { id: req.params.id }
+      where: { id: userId }
     });
 
     if (!targetUser) {
@@ -237,7 +241,7 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
     }
 
     const updated = await prisma.user.update({
-      where: { id: req.params.id },
+      where: { id: userId },
       data: {
         coins: coins ?? targetUser.coins,
         adminRole: adminRole ?? targetUser.adminRole
@@ -272,8 +276,9 @@ router.post('/users/:id/suspend', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Cannot suspend your own account' });
     }
 
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
+      where: { id: userId },
       select: { adminRole: true, isSuspended: true, id: true, username: true }
     });
 
@@ -290,7 +295,7 @@ router.post('/users/:id/suspend', requireAdmin, async (req, res) => {
     }
 
     const updated = await prisma.user.update({
-      where: { id: req.params.id },
+      where: { id: userId },
       data: {
         isSuspended: suspend
       },
@@ -319,8 +324,9 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id }
+      where: { id: userId }
     });
 
     if (!user) {
@@ -328,7 +334,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
     }
 
     await prisma.user.delete({
-      where: { id: req.params.id }
+      where: { id: userId }
     });
 
     res.json({ message: 'Account deleted' });

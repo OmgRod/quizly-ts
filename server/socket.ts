@@ -3,6 +3,7 @@ const pendingAcks: Map<string, Map<string, { event: string; payload: any }>> = n
 
 import { Server, Socket } from 'socket.io';
 import prisma from './prisma.js';
+import { generateQuizFromAIStream } from './services/geminiService.js';
 
 // GameState enum to convert numeric values to strings for database
 enum GameState {
@@ -442,6 +443,54 @@ export function setupSocketHandlers(io: Server) {
     // On reconnect or join, resend any pending critical events
     socket.on('JOIN_ROOM', async (data: { pin: string; playerId?: string; userId?: string }) => {
       // ...existing code...
+      // Gemini AI Quiz Generation Streaming
+      // Client emits: 'ai_generate_quiz_stream' with { topic, count, userId }
+      // Server emits: 'ai_quiz_progress' (progress, status), 'ai_quiz_chunk' (chunk), 'ai_quiz_complete' (quiz)
+      function setupAIQuizStreaming(io: Server) {
+        io.on('connection', (socket: Socket) => {
+          socket.on('ai_generate_quiz_stream', async ({ topic, count, userId }) => {
+            try {
+              let progress = 0;
+              let status = 'Starting...';
+              socket.emit('ai_quiz_progress', { progress, status });
+
+              // Stream Gemini output
+              const stream = await generateQuizFromAIStream(topic, count, userId);
+              let fullText = '';
+              for await (const chunk of stream) {
+                if (!chunk || typeof chunk.text !== 'string') {
+                  console.error('[Gemini] Empty or invalid chunk:', chunk);
+                  continue;
+                }
+                fullText += chunk.text;
+                progress = Math.min(99, progress + 7); // Increment progress
+                status = chunk.text ? 'Generating quiz...' : status;
+                socket.emit('ai_quiz_chunk', { text: chunk.text });
+                socket.emit('ai_quiz_progress', { progress, status });
+              }
+              // Parse final quiz
+              let quiz = null;
+              try {
+                if (!fullText || fullText.trim().length === 0) {
+                  console.error('[Gemini] No output received from AI stream.');
+                  socket.emit('ai_quiz_error', { error: 'No output received from Gemini. Check API key and model.' });
+                  return;
+                }
+                quiz = JSON.parse(fullText);
+              } catch (err) {
+                console.error('[Gemini] Failed to parse AI output:', fullText);
+                socket.emit('ai_quiz_error', { error: 'Failed to parse AI output.' });
+                return;
+              }
+              socket.emit('ai_quiz_progress', { progress: 100, status: 'Quiz ready!' });
+              socket.emit('ai_quiz_complete', { quiz });
+            } catch (err) {
+              const errorMsg = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'AI error.';
+              socket.emit('ai_quiz_error', { error: errorMsg });
+            }
+          });
+        });
+      }
 
       // After join logic, check for pending ACKs
       if (data.playerId && pendingAcks.has(data.pin)) {
