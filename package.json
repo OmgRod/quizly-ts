@@ -55,7 +55,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@types/cors": "^2.8.19",
     "@types/csurf": "^1.11.5",
-    "@types/dotenv": "^6.1.1",
+    "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.6",
     "@types/express-serve-static-core": "^5.1.1",
     "@types/express-session": "^1.18.2",
