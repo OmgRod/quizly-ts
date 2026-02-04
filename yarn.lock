@@ -327,10 +327,10 @@
   resolved "https://registry.yarnpkg.com/@fontsource/plus-jakarta-sans/-/plus-jakarta-sans-5.2.8.tgz#c07f9cba01acee30748d6b78ee06ab4b79266547"
   integrity sha512-P5qE49fqdeD+7DXH1KBxmMPlB17LTz1zvBhFH0tFzfnYTKVJVyb0pR6plh0ZGXxcB+Oayb54FZZw3V42/DawTw==
 
-"@google/genai@^1.35.0":
-  version "1.38.0"
-  resolved "https://registry.yarnpkg.com/@google/genai/-/genai-1.38.0.tgz#e26b5c269ddd6477ba71c03e829e903910010d02"
-  integrity sha512-V/4CQVQGovvGHuS73lwJwHKR9x33kCij3zz/ReEQ4A7RJaV0U7m4k1mvYhFk55cGZdF5JLKu2S9BTaFuEs5xTA==
+"@google/genai@^1.39.0":
+  version "1.39.0"
+  resolved "https://registry.yarnpkg.com/@google/genai/-/genai-1.39.0.tgz#38b22bf49e831eebb7bad67c39cd20e63263f044"
+  integrity sha512-Vz7AQsOdBeiIcxmXIQNy/hzDvyAOE1lSpWA10itUQza7h3aQFF6QSGaQ7o1GYsjMD3XslK4Ee/Ol0eLhRXb7gA==
   dependencies:
     google-auth-library "^10.3.0"
     protobufjs "^7.5.4"

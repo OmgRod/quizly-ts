@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@fontsource/plus-jakarta-sans": "^5.2.8",
-    "@google/genai": "^1.35.0",
+    "@google/genai": "^1.39.0",
     "@prisma/client": "6.16.1",
     "@types/bcryptjs": "^3.0.0",
     "axios": "^1.13.2",
