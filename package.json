@@ -29,7 +29,7 @@
     "bcryptjs": "^3.0.3",
     "bootstrap-icons": "^1.13.1",
     "clsx": "^2.1.1",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "csurf": "^1.11.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
